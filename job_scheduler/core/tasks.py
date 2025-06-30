@@ -15,6 +15,25 @@ scheduler = BackgroundScheduler()
 scheduler.start()
 
 
+def get_task_for_scheduler(db: Session, task_id: str) -> ScheduledTask:
+    return (
+        db.query(ScheduledTask)
+        .filter(
+            ScheduledTask.task_id == task_id,
+            ScheduledTask.status == TaskStatus.Scheduled,
+        )
+        .first()
+    )
+
+
+def get_result(task: ScheduledTask) -> str:
+    return f"Task '{task.name}' executed at {datetime.now(timezone.utc)}"
+
+
+def get_result_for_failed_task(e: Exception) -> str:
+    return f"Error: {str(e)}"
+
+
 def run_task(task_id: str):
     lock_key = f"lock:task:{task_id}"
     lock = redis_client.lock(lock_key, timeout=300, blocking_timeout=5)
@@ -26,14 +45,7 @@ def run_task(task_id: str):
     db: Session = SessionLocal()
     try:
         with db.begin():
-            task = (
-                db.query(ScheduledTask)
-                .filter(
-                    ScheduledTask.task_id == task_id,
-                    ScheduledTask.status == TaskStatus.Scheduled,
-                )
-                .first()
-            )
+            task = get_task_for_scheduler(db=db, task_id=task_id)
 
             if not task:
                 logger.info(f"Task {task_id} not found or already processed.")
@@ -41,19 +53,20 @@ def run_task(task_id: str):
 
             logger.info(f"Executing task {task.task_id} - {task.name}")
 
-            result = f"Task '{task.name}' executed at {datetime.now(timezone.utc)}"
-            task.status = TaskStatus.done
+            result = get_result(task=task)
+            task.status = TaskStatus.Done
             task.result = result
             logger.info(f"Task {task.task_id} completed successfully.")
 
     except Exception as e:
         logger.error(f"Task {task_id} failed: {str(e)}")
         try:
-            with db.begin():
-                task = db.query(ScheduledTask).filter(ScheduledTask.task_id == task_id).first()
+            recovery_db = SessionLocal()
+            with recovery_db.begin():
+                task = get_task_for_scheduler(db=recovery_db, task_id=task_id)
                 if task:
                     task.status = TaskStatus.Failed
-                    task.result = f"Error: {str(e)}"
+                    task.result = get_result_for_failed_task(e)
         except Exception as rollback_err:
             logger.critical(f"Rollback failed: {rollback_err}")
 

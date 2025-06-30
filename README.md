@@ -97,6 +97,7 @@ pytest
 Includes:
 - Unit tests for all endpoints
 - Full recovery behavior under all `RECOVER_PAST_TASKS` modes
+- Redis lock handling (mocked)
 - Scheduler error cases
 
 ---
