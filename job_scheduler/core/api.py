@@ -32,7 +32,7 @@ def create_task(task_data: TaskCreate, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         logger.error(f"Failed to create/schedule task: {e}")
-        raise exceptions.TaskCreationFailed
+        raise exceptions.TaskCreationFailed()
 
 
 @router.get("/tasks", response_model=list[TaskRead])
@@ -47,13 +47,13 @@ def delete_task(task_id: str, db: Session = Depends(get_db)):
     try:
         task = db.query(ScheduledTask).filter_by(task_id=task_id).first()
         if not task:
-            raise exceptions.TaskNotFound
+            raise exceptions.TaskNotFound()
 
         try:
             remove_task(task_id)
         except Exception as e:
             logger.error(f"Failed to remove task {task_id} from scheduler: {e}")
-            raise exceptions.SchedulerRemovalFailed
+            raise exceptions.SchedulerRemovalFailed()
 
         db.delete(task)
         db.commit()
@@ -66,4 +66,4 @@ def delete_task(task_id: str, db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         logger.error(f"Failed to delete task {task_id}: {e}")
-        raise exceptions.TaskDeletionFailed
+        raise exceptions.TaskDeletionFailed()
