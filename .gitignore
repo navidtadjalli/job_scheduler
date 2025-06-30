@@ -67,7 +67,6 @@ coverage.xml
 
 # Local env files
 .env
-.env.*
 *.env
 
 # Logs
