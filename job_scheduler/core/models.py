@@ -6,7 +6,7 @@ from sqlalchemy import Enum as SqlEnum
 from sqlalchemy import String, Text
 from sqlalchemy.orm import declarative_base
 
-from app.enums import TaskStatus
+from job_scheduler.constants import TaskStatus
 
 Base = declarative_base()
 

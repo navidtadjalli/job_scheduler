@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.enums import TaskStatus
+from job_scheduler.constants import TaskStatus
 
 
 class TaskCreate(BaseModel):

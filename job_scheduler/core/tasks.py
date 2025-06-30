@@ -5,11 +5,11 @@ from apscheduler.triggers.date import DateTrigger
 from redis.exceptions import LockError
 from sqlalchemy.orm import Session
 
-from app.database import SessionLocal
-from app.enums import TaskStatus
-from app.logger import logger
-from app.models import ScheduledTask
-from app.redis_client import redis_client
+from job_scheduler.constants import TaskStatus
+from job_scheduler.core.models import ScheduledTask
+from job_scheduler.database import SessionLocal
+from job_scheduler.logger import logger
+from job_scheduler.redis_client import redis_client
 
 scheduler = BackgroundScheduler()
 scheduler.start()
@@ -81,3 +81,7 @@ def schedule_task(task: ScheduledTask):
 
     except Exception as e:
         logger.error(f"Failed to schedule task {task.task_id}: {str(e)}")
+
+
+def remove_task(task_id: str):
+    scheduler.remove_job(task_id)

@@ -1,19 +1,20 @@
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app import models, scheduler, schemas, dependencies, exceptions
-from app.database import engine
-from app.logger import logger
+from job_scheduler import exceptions
+from job_scheduler.core.models import ScheduledTask
+from job_scheduler.core.schemas import TaskCreate, TaskRead
+from job_scheduler.core.tasks import remove_task, schedule_task
+from job_scheduler.dependencies import get_db
+from job_scheduler.logger import logger
 
-app = FastAPI()
-
-models.Base.metadata.create_all(bind=engine)
+router = APIRouter()
 
 
-@app.post("/tasks", response_model=schemas.TaskRead)
-def create_task(task_data: schemas.TaskCreate, db: Session = Depends(dependencies.get_db)):
+@router.post("/tasks", response_model=TaskRead)
+def create_task(task_data: TaskCreate, db: Session = Depends(get_db)):
     try:
-        task = models.ScheduledTask(
+        task = ScheduledTask(
             name=task_data.name,
             run_at=task_data.run_at,
         )
@@ -21,7 +22,7 @@ def create_task(task_data: schemas.TaskCreate, db: Session = Depends(dependencie
         db.flush()
         db.refresh(task)
 
-        scheduler.schedule_task(task)
+        schedule_task(task)
 
         db.commit()
 
@@ -34,22 +35,22 @@ def create_task(task_data: schemas.TaskCreate, db: Session = Depends(dependencie
         raise exceptions.TaskCreationFailed
 
 
-@app.get("/tasks", response_model=list[schemas.TaskRead])
-def list_tasks(db: Session = Depends(dependencies.get_db)):
+@router.get("/tasks", response_model=list[TaskRead])
+def list_tasks(db: Session = Depends(get_db)):
     logger.info("Listing all tasks")
-    tasks = db.query(models.ScheduledTask).order_by(models.ScheduledTask.run_at).all()
+    tasks = db.query(ScheduledTask).order_by(ScheduledTask.run_at).all()
     return tasks
 
 
-@app.delete("/tasks/{task_id}")
-def delete_task(task_id: str, db: Session = Depends(dependencies.get_db)):
+@router.delete("/tasks/{task_id}")
+def delete_task(task_id: str, db: Session = Depends(get_db)):
     try:
-        task = db.query(models.ScheduledTask).filter_by(task_id=task_id).first()
+        task = db.query(ScheduledTask).filter_by(task_id=task_id).first()
         if not task:
             raise exceptions.TaskNotFound
 
         try:
-            scheduler.scheduler.remove_job(task_id)
+            remove_task(task_id)
         except Exception as e:
             logger.error(f"Failed to remove task {task_id} from scheduler: {e}")
             raise exceptions.SchedulerRemovalFailed

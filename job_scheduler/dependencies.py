@@ -1,4 +1,4 @@
-from app.database import SessionLocal
+from job_scheduler.database import SessionLocal
 
 
 def get_db():

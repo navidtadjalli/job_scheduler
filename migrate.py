@@ -1,5 +1,5 @@
-from app.database import engine
-from app.models import Base
+from job_scheduler.core.models import Base
+from job_scheduler.database import engine
 
 if __name__ == "__main__":
     print("📦 Creating database...")

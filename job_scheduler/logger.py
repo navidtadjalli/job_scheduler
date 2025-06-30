@@ -1,12 +1,14 @@
 import logging
 
+from job_scheduler.config import settings
+
 # Create a custom logger
 logger = logging.getLogger("job_scheduler")
-logger.setLevel(logging.DEBUG)  # Change to INFO in prod
+logger.setLevel(settings.log_level)  # Change to INFO in prod
 
 # Console handler
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+ch.setLevel(settings.log_level)
 
 # Formatter
 formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
