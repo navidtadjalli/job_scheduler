@@ -48,19 +48,14 @@ def delete_task(task_id: str, db: Session = Depends(get_db)):
         task = db.query(ScheduledTask).filter_by(task_id=task_id).first()
         if not task:
             raise exceptions.TaskNotFound()
-
-        try:
-            remove_task(task_id)
-        except Exception as e:
-            logger.error(f"Failed to remove task {task_id} from scheduler: {e}")
-            raise exceptions.SchedulerRemovalFailed()
+        
+        remove_task(task_id)
 
         db.delete(task)
         db.commit()
 
         logger.info(f"Deleted task {task_id} from both DB and scheduler")
         return {"message": f"Task {task_id} deleted."}
-
     except HTTPException:
         raise
     except Exception as e:

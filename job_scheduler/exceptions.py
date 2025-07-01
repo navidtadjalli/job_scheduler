@@ -22,12 +22,6 @@ class TaskCreationFailed(AppException):
     error_code = "TASK_CREATE_500"
 
 
-class SchedulerRemovalFailed(AppException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    detail = "Failed to remove task from scheduler"
-    error_code = "SCHEDULER_500"
-
-
 class TaskDeletionFailed(AppException):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     detail = f"Failed to delete task"

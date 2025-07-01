@@ -45,9 +45,10 @@ def test_scheduler_removal_failure(monkeypatch):
         raise Exception("boom")
 
     monkeypatch.setattr(scheduler, "remove_job", fake_remove_job)
-
+    
     response = client.delete(f"/tasks/{task_id}")
     assert response.status_code == 500
+    
     detail = response.json()["detail"]
-    assert detail["detail"] == "Failed to remove task from scheduler"
-    assert detail["error_code"] == "SCHEDULER_500"
+    assert detail["error_code"] == "TASK_DELETE_500"
+    assert "Failed to delete" in detail["detail"]
