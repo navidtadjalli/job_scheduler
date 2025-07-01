@@ -32,6 +32,10 @@ def get_result(task: ScheduledTask) -> str:
     return f"Task '{task.name}' executed at {datetime.now(timezone.utc)}"
 
 
+def get_result_for_error(exception_text: str) -> str:
+    return f"Error: {exception_text}"
+
+
 def execute_task(db: Session, task_id: str):
     with db.begin():
         task = get_task_for_scheduler(db=db, task_id=task_id)
@@ -54,7 +58,7 @@ def recover_task(db: Session, task_id: str, exception_text: str):
             task = get_task_for_scheduler(db=db, task_id=task_id)
             if task:
                 task.status = TaskStatus.Failed
-                task.result = f"Error: {exception_text}"
+                task.result = get_result_for_error(exception_text=exception_text)
     except Exception as rollback_err:
         logger.critical(f"Rollback failed: {rollback_err}")
 
