@@ -198,7 +198,8 @@ pytest
   - Tests if the endpoint handles scheduler failures and rolls back database changes when necessary
 
 - `test_get_tasks.py`: Task listing
-  - Tests if the endpoint returns the list of all tasks
+  - Tests if the endpoint returns the list of all tasks in paginated format
+  - Tests if the endpoint pagination parameters (`offset`, `limit`) works and the result is sorted by `created_at`
 
 - `test_health_check.py`: `/health` endpoint
   - Tests if the endpoint works correctly

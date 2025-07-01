@@ -30,9 +30,9 @@ def create_task(db: Session, task_data: TaskCreate):
         logger.error(f"Failed to create/schedule task: {e}")
         raise TaskCreationFailed()
 
-def list_tasks(db: Session, skip: int, limit: int):
+def list_tasks(db: Session, offset: int, limit: int):
     logger.info("Listing all tasks")
-    tasks = db.query(ScheduledTask).order_by(ScheduledTask.created_at).offset(skip).limit(limit).all()
+    tasks = db.query(ScheduledTask).order_by(ScheduledTask.created_at).offset(offset).limit(limit).all()
     count = db.query(ScheduledTask).count()
     
     return PaginatedScheduledTasks(count=count, result=tasks)
