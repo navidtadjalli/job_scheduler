@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 
 from job_scheduler.config import settings
-from job_scheduler.constants import TaskStatus
 from job_scheduler.core.models import ScheduledTask
 from job_scheduler.core.recovery import recover_scheduled_tasks
 

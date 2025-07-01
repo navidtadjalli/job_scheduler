@@ -6,8 +6,6 @@ from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship
 
-from job_scheduler.constants import TaskStatus
-
 Base = declarative_base()
 
 
@@ -23,7 +21,7 @@ class ScheduledTask(Base):
     name = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     cron_expression = Column(String, nullable=False)
-    status = Column(String, default=TaskStatus.Scheduled.value, nullable=False)
+    next_run_at = Column(DateTime, nullable=True)
 
     results = relationship("ExecutedTask", back_populates="task")
 

@@ -1,6 +1,5 @@
 from fastapi.testclient import TestClient
 
-from job_scheduler.constants import TaskStatus
 from core.models import ScheduledTask
 from job_scheduler.main import app
 

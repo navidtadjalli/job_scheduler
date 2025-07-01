@@ -4,7 +4,7 @@ from typing import Optional
 from croniter import CroniterBadCronError, croniter
 from pydantic import BaseModel, field_validator
 
-from job_scheduler.constants import ResultStatus, TaskStatus
+from job_scheduler.constants import ResultStatus
 
 
 class TaskCreate(BaseModel):
@@ -26,8 +26,8 @@ class ScheduledTaskRead(BaseModel):
     slug: str
     name: str
     cron_expression: str
-    status: TaskStatus
     created_at: datetime
+    next_run_at: datetime
 
     model_config = {"from_attributes": True}
 

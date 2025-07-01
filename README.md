@@ -209,6 +209,7 @@ pytest
 
 - `test_post_task.py`: Create task logic
   - Tests if the endpoint successfully creates a task with `cron_expression` value being set
+  - Tests if `next_run_at` is getting set and its value is calculated correctly
   - Tests if the endpoint handles exceptions during task creation
 
 - `test_recovery.py`: Recovery behavior

@@ -6,7 +6,6 @@ from apscheduler.triggers.cron import CronTrigger
 from redis.exceptions import LockError
 from sqlalchemy.orm import Session
 
-from job_scheduler.constants import TaskStatus
 from core.models import ScheduledTask
 from job_scheduler.database import SessionLocal
 from job_scheduler.logger import logger
@@ -90,6 +89,9 @@ def schedule_task(task: ScheduledTask):
             id=str(task.scheduled_task_id),
             replace_existing=True,
         )
+        
+        now = datetime.now(timezone.utc)
+        task.next_run_at = trigger.get_next_fire_time(None, now)
 
         logger.info(f"Scheduled task {task.scheduled_task_id} ({task.name})")
 
