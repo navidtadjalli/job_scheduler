@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from job_scheduler import exceptions
 from job_scheduler.core.models import ScheduledTask
-from job_scheduler.core.schemas import TaskCreate, TaskRead
+from job_scheduler.core.schemas import PaginatedTasks, TaskCreate, TaskRead
 from job_scheduler.core.tasks import remove_task, schedule_task
 from job_scheduler.dependencies import get_db
 from job_scheduler.logger import logger
@@ -36,11 +36,16 @@ def create_task(task_data: TaskCreate, db: Session = Depends(get_db)):
         raise exceptions.TaskCreationFailed()
 
 
-@router.get("/tasks", response_model=list[TaskRead])
-def list_tasks(db: Session = Depends(get_db)):
+@router.get("/tasks", response_model=PaginatedTasks)
+def list_tasks(db: Session = Depends(get_db), skip: int = Query(0, ge=0), limit: int = Query(10, le=100)):
     logger.info("Listing all tasks")
-    tasks = db.query(ScheduledTask).order_by(ScheduledTask.run_at).all()
-    return tasks
+    tasks = db.query(ScheduledTask).order_by(ScheduledTask.run_at).offset(skip).limit(limit).all()
+    count = db.query(ScheduledTask).count()
+
+    return {
+        "count": count,
+        "result": tasks,
+    }
 
 
 @router.delete("/tasks/{task_id}")

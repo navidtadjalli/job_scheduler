@@ -7,7 +7,7 @@ from job_scheduler.main import app
 client = TestClient(app)
 
 
-def test_get_tasks_returns_created():
+def test_get_tasks_returns_created(db):
     client.post(
         "/tasks",
         json={"name": "Visible Task", "run_at": (datetime.now(timezone.utc) + timedelta(seconds=10)).isoformat()},
@@ -15,5 +15,6 @@ def test_get_tasks_returns_created():
     response = client.get("/tasks")
     assert response.status_code == 200
     data = response.json()
-    assert isinstance(data, list)
-    assert any(task["name"] == "Visible Task" for task in data)
+    assert isinstance(data, dict)
+    assert data["count"] == 1
+    assert any(task["name"] == "Visible Task" for task in data["result"])
