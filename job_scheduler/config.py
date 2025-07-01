@@ -1,16 +1,13 @@
-import logging
-
-from pydantic import Field
+from pydantic import Field, ValidationError
 from pydantic_settings import BaseSettings
 
 from job_scheduler.constants import PastTaskPolicy
 
 
 class Settings(BaseSettings):
-    redis_url: str = Field(default="redis://localhost:6379/0")
-    db_url: str = Field(default="sqlite:///./tasks.db")
+    redis_url: str = Field(..., description="Redis connection URI")
+    db_url: str = Field(..., description="PostgreSQL connection URI")
     recover_past_tasks: PastTaskPolicy = Field(default=PastTaskPolicy.FAIL)
-    log_level: int = Field(default=logging.DEBUG)
 
     model_config = {
         "env_file": ".env",
@@ -18,4 +15,9 @@ class Settings(BaseSettings):
     }
 
 
-settings = Settings()
+try:
+    settings = Settings()
+except ValidationError as e:
+    print("Invalid configuration:")
+    print(e)
+    raise
