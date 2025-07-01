@@ -230,22 +230,22 @@ This will output:
 Name                             Stmts   Miss  Cover   Missing
 --------------------------------------------------------------
 job_scheduler/__init__.py            0      0   100%
-job_scheduler/config.py             15      4    73%   21-24
+job_scheduler/config.py             17      0   100%
 job_scheduler/constants.py          12      0   100%
 job_scheduler/core/__init__.py       0      0   100%
 job_scheduler/core/api.py           46      0   100%
-job_scheduler/core/models.py        17      0   100%
+job_scheduler/core/models.py        16      0   100%
 job_scheduler/core/recovery.py      36      0   100%
 job_scheduler/core/schemas.py       27      0   100%
-job_scheduler/core/tasks.py         67      7    90%   58-59, 81-82, 88, 90, 94
-job_scheduler/database.py           17      3    82%   23-25
+job_scheduler/core/tasks.py         73      4    95%   62-63, 85-86
+job_scheduler/database.py           14      4    71%   11-14
 job_scheduler/dependencies.py        6      0   100%
 job_scheduler/exceptions.py         19      0   100%
 job_scheduler/logger.py             10      1    90%   19
-job_scheduler/main.py               19      5    74%   14-17, 27
+job_scheduler/main.py               19      4    79%   14-17
 job_scheduler/redis_client.py        3      0   100%
 --------------------------------------------------------------
-TOTAL                              294     20    93%
+TOTAL                              298     13    96%
 ```
 
 ---
