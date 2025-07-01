@@ -30,8 +30,31 @@ def get_result(task: ScheduledTask) -> str:
     return f"Task '{task.name}' executed at {datetime.now(timezone.utc)}"
 
 
-def get_result_for_failed_task(e: Exception) -> str:
-    return f"Error: {str(e)}"
+def execute_task(db: Session, task_id: str):
+    with db.begin():
+        task = get_task_for_scheduler(db=db, task_id=task_id)
+
+        if not task:
+            logger.info(f"Task {task_id} not found or already processed.")
+            return
+
+        logger.info(f"Executing task {task.task_id} - {task.name}")
+
+        result = get_result(task=task)
+        task.status = TaskStatus.Done
+        task.result = result
+        logger.info(f"Task {task.task_id} completed successfully.")
+    
+
+def recover_task(db: Session, task_id: str, exception_text: str):
+    try:
+        with db.begin():
+            task = get_task_for_scheduler(db=db, task_id=task_id)
+            if task:
+                task.status = TaskStatus.Failed
+                task.result = f"Error: {exception_text}"
+    except Exception as rollback_err:
+        logger.critical(f"Rollback failed: {rollback_err}")
 
 
 def run_task(task_id: str):
@@ -44,31 +67,11 @@ def run_task(task_id: str):
 
     db: Session = SessionLocal()
     try:
-        with db.begin():
-            task = get_task_for_scheduler(db=db, task_id=task_id)
-
-            if not task:
-                logger.info(f"Task {task_id} not found or already processed.")
-                return
-
-            logger.info(f"Executing task {task.task_id} - {task.name}")
-
-            result = get_result(task=task)
-            task.status = TaskStatus.Done
-            task.result = result
-            logger.info(f"Task {task.task_id} completed successfully.")
-
+        execute_task(db=db, task_id=task_id)
     except Exception as e:
-        logger.error(f"Task {task_id} failed: {str(e)}")
-        try:
-            recovery_db = SessionLocal()
-            with recovery_db.begin():
-                task = get_task_for_scheduler(db=recovery_db, task_id=task_id)
-                if task:
-                    task.status = TaskStatus.Failed
-                    task.result = get_result_for_failed_task(e)
-        except Exception as rollback_err:
-            logger.critical(f"Rollback failed: {rollback_err}")
+        exception_text: str = str(e)
+        logger.error(f"Task {task_id} failed: {exception_text}")
+        recover_task(db=db, task_id=task_id, exception_text=exception_text)
 
     finally:
         try:
