@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: job-scheduler-app
+    depends_on:
+      - db
+      - redis
+    environment:
+      DB_URL: postgresql+psycopg2://postgres:secret@db:5432/schedule_db
+      REDIS_URL: redis://redis:6379/0
+      RECOVER_PAST_TASKS: fail
+    ports:
+      - "8000:8000"
+    command: uvicorn job_scheduler.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    working_dir: /app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db:
+    image: postgres:15
+    container_name: job-scheduler-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: schedule_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:6
+    container_name: job-scheduler-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
