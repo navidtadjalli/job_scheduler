@@ -22,7 +22,7 @@ def test_create_task_fails_commit(monkeypatch):
     def broken_schedule_task(task):
         raise Exception("Simulated schedule_task failure")
 
-    monkeypatch.setattr("job_scheduler.core.api.schedule_task", broken_schedule_task)
+    monkeypatch.setattr("core.services.schedule_task", broken_schedule_task)
 
     response = client.post(
         "/tasks",
