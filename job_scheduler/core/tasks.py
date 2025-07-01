@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
 
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 from redis.exceptions import LockError
 from sqlalchemy.orm import Session
 
@@ -82,18 +84,25 @@ def run_task(task_id: str):
 
 
 def schedule_task(task: ScheduledTask):
-    try:
+    if task.cron:
+        trigger = CronTrigger.from_crontab(task.cron)
+    elif task.interval_seconds:
+        trigger = IntervalTrigger(seconds=task.interval_seconds)
+    elif task.run_at:
         trigger = DateTrigger(run_date=task.run_at)
+    else:
+        raise ValueError("Invalid task: no timing provided")
 
+    try:
         scheduler.add_job(
-            func=run_task,
+            run_task,
             trigger=trigger,
-            args=[task.task_id],
-            id=task.task_id,  # job ID = task ID
-            replace_existing=True,  # in case of restart or re-schedule
+            args=[str(task.task_id)],
+            id=str(task.task_id),
+            replace_existing=True,
         )
 
-        logger.info(f"Scheduled task {task.task_id} ({task.name}) to run at {task.run_at}")
+        logger.info(f"Scheduled task {task.task_id} ({task.name})")
 
     except Exception as e:
         logger.error(f"Failed to schedule task {task.task_id}: {str(e)}")
