@@ -26,7 +26,7 @@ def test_fail_policy_marks_past_tasks_failed(monkeypatch, db):
     recover_scheduled_tasks()
     db.refresh(task1)
     db.refresh(task2)
-    assert task1.status == TaskStatus.Failed
+    assert task1.status == TaskStatus.Failed.value
     assert "Missed execution" in task1.result
 
 
@@ -37,7 +37,7 @@ def test_skip_policy_does_not_touch_past_tasks(monkeypatch, db):
     monkeypatch.setattr("job_scheduler.core.recovery.schedule_task", lambda t: None)
     recover_scheduled_tasks()
     db.refresh(task1)
-    assert task1.status == TaskStatus.Scheduled
+    assert task1.status == TaskStatus.Scheduled.value
 
 
 def test_run_policy_reschedules_past_tasks(monkeypatch, db):
@@ -63,7 +63,7 @@ def test_scheduler_failure_does_not_crash(monkeypatch, db):
     recover_scheduled_tasks()
     db.refresh(task1)
     db.refresh(task2)
-    assert task1.status == TaskStatus.Scheduled
+    assert task1.status == TaskStatus.Scheduled.value
 
 
 def test_no_tasks_does_nothing(monkeypatch, db):

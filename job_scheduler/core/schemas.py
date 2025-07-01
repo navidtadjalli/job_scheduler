@@ -28,10 +28,12 @@ class TaskCreate(BaseModel):
 class TaskRead(BaseModel):
     task_id: str
     name: str
-    run_at: datetime
     status: TaskStatus
     result: str | None
     created_at: datetime
+    cron: Optional[str] = None
+    interval_seconds: Optional[int] = None
+    run_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
 

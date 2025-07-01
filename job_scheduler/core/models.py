@@ -20,5 +20,5 @@ class ScheduledTask(Base):
     interval_seconds = Column(Integer, nullable=True)  # Interval-based
     cron = Column(String, nullable=True)  # Cron string
 
-    status = Column(String, default=TaskStatus.Scheduled, nullable=False)
+    status = Column(String, default=TaskStatus.Scheduled.value, nullable=False)
     result = Column(String, nullable=True)

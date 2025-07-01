@@ -25,8 +25,10 @@ def recover_scheduled_tasks():
 
 
 def _mark_overdue_tasks_as_failed(db, now):
-    db.query(ScheduledTask).filter(ScheduledTask.status == TaskStatus.Scheduled, ScheduledTask.run_at <= now).update(
-        {ScheduledTask.status: TaskStatus.Failed, ScheduledTask.result: "Missed execution: system was down"},
+    db.query(ScheduledTask).filter(
+        ScheduledTask.status == TaskStatus.Scheduled.value, ScheduledTask.run_at <= now
+    ).update(
+        {ScheduledTask.status: TaskStatus.Failed.value, ScheduledTask.result: "Missed execution: system was down"},
         synchronize_session=False,  # we don’t need to refresh in-session objects
     )
     db.commit()
@@ -35,7 +37,7 @@ def _mark_overdue_tasks_as_failed(db, now):
 def _reschedule_overdue_tasks(db, now):
     tasks = (
         db.query(ScheduledTask)
-        .filter(ScheduledTask.status == TaskStatus.Scheduled)
+        .filter(ScheduledTask.status == TaskStatus.Scheduled.value)
         .filter(ScheduledTask.run_at <= now)
         .all()
     )
@@ -50,7 +52,7 @@ def _reschedule_overdue_tasks(db, now):
 def _reschedule_upcoming_tasks(db, now):
     tasks = (
         db.query(ScheduledTask)
-        .filter(ScheduledTask.status == TaskStatus.Scheduled)
+        .filter(ScheduledTask.status == TaskStatus.Scheduled.value)
         .filter(ScheduledTask.run_at > now)
         .all()
     )

@@ -16,6 +16,8 @@ def create_task(task_data: TaskCreate, db: Session = Depends(get_db)):
     try:
         task = ScheduledTask(
             name=task_data.name,
+            cron=task_data.cron,
+            interval_seconds=task_data.interval_seconds,
             run_at=task_data.run_at,
         )
 
@@ -31,6 +33,7 @@ def create_task(task_data: TaskCreate, db: Session = Depends(get_db)):
         return task
 
     except Exception as e:
+        print(str(e))
         db.rollback()
         logger.error(f"Failed to create/schedule task: {e}")
         raise exceptions.TaskCreationFailed()

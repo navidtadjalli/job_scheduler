@@ -56,4 +56,4 @@ def test_scheduler_removal_failure(monkeypatch, db):
     assert "Failed to delete" in detail["detail"]
 
     task = db.query(ScheduledTask).filter_by(task_id=task_id).first()
-    assert task.status == TaskStatus.Scheduled
+    assert task.status == TaskStatus.Scheduled.value

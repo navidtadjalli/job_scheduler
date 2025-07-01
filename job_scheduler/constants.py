@@ -7,9 +7,9 @@ class Phase(str, Enum):
 
 
 class TaskStatus(str, Enum):
-    Scheduled = "scheduled"
-    Done = "done"
-    Failed = "failed"
+    Scheduled = "Scheduled"
+    Done = "Done"
+    Failed = "Failed"
 
 
 class PastTaskPolicy(str, Enum):

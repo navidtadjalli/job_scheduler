@@ -207,7 +207,10 @@ pytest
   - Tests if FastAPI runs the lifespan logic and triggers task recovery on app startup
 
 - `test_post_task.py`: Create task logic
-  - Tests if the endpoint successfully creates a task
+  - Tests if the endpoint successfully creates a task with `cron` value being set
+  - Tests if the endpoint successfully creates a task with `interval_seconds` being set
+  - Tests if the endpoint successfully creates a task with `run_at` being set
+  - Tests if the endpoint successfully creates a task with all three values being set
   - Tests if the endpoint handles exceptions during task creation
 
 - `test_recovery.py`: Recovery behavior
@@ -249,10 +252,10 @@ job_scheduler/__init__.py            0      0   100%
 job_scheduler/config.py             17      0   100%
 job_scheduler/constants.py          12      0   100%
 job_scheduler/core/__init__.py       0      0   100%
-job_scheduler/core/api.py           46      0   100%
+job_scheduler/core/api.py           48      0   100%
 job_scheduler/core/models.py        16      0   100%
 job_scheduler/core/recovery.py      36      0   100%
-job_scheduler/core/schemas.py       27      0   100%
+job_scheduler/core/schemas.py       32      0   100%
 job_scheduler/core/tasks.py         73      4    95%   62-63, 85-86
 job_scheduler/database.py           14      4    71%   11-14
 job_scheduler/dependencies.py        6      0   100%
@@ -261,7 +264,7 @@ job_scheduler/logger.py             10      1    90%   19
 job_scheduler/main.py               19      4    79%   14-17
 job_scheduler/redis_client.py        3      0   100%
 --------------------------------------------------------------
-TOTAL                              298     13    96%
+TOTAL                              305     13    96%
 ```
 
 ---

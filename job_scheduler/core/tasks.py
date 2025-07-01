@@ -22,7 +22,7 @@ def get_task_for_scheduler(db: Session, task_id: str) -> ScheduledTask:
         db.query(ScheduledTask)
         .filter(
             ScheduledTask.task_id == task_id,
-            ScheduledTask.status == TaskStatus.Scheduled,
+            ScheduledTask.status == TaskStatus.Scheduled.value,
         )
         .first()
     )
@@ -47,7 +47,7 @@ def execute_task(db: Session, task_id: str):
         logger.info(f"Executing task {task.task_id} - {task.name}")
 
         result = get_result(task=task)
-        task.status = TaskStatus.Done
+        task.status = TaskStatus.Done.value
         task.result = result
         logger.info(f"Task {task.task_id} completed successfully.")
 
@@ -57,7 +57,7 @@ def recover_task(db: Session, task_id: str, exception_text: str):
         with db.begin():
             task = get_task_for_scheduler(db=db, task_id=task_id)
             if task:
-                task.status = TaskStatus.Failed
+                task.status = TaskStatus.Failed.value
                 task.result = get_result_for_error(exception_text=exception_text)
     except Exception as rollback_err:
         logger.critical(f"Rollback failed: {rollback_err}")

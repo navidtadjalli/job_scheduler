@@ -44,7 +44,7 @@ def test_run_task_success(db):
     task = create_task(db, "successful_task", datetime.now(timezone.utc) + timedelta(seconds=5))
     run_task(task.task_id)
     db.refresh(task)
-    assert task.status == TaskStatus.Done
+    assert task.status == TaskStatus.Done.value
     assert "executed at" in task.result
 
 
@@ -54,7 +54,7 @@ def test_run_task_double_execution_prevented(db):
     lock.acquire()
     run_task(task.task_id)
     db.refresh(task)
-    assert task.status == TaskStatus.Scheduled
+    assert task.status == TaskStatus.Scheduled.value
     lock.release()
 
 
@@ -69,17 +69,17 @@ def test_run_task_failure(db, monkeypatch):
     run_task(task.task_id)
 
     db.refresh(task)
-    assert task.status == TaskStatus.Failed
+    assert task.status == TaskStatus.Failed.value
     assert "Error:" in task.result
 
 
 def test_run_task_already_done(db):
     task = create_task(db, "completed_task", datetime.now(timezone.utc) + timedelta(seconds=5))
-    task.status = TaskStatus.Done
+    task.status = TaskStatus.Done.value
     db.commit()
     run_task(task.task_id)
     db.refresh(task)
-    assert task.status == TaskStatus.Done
+    assert task.status == TaskStatus.Done.value
 
 
 def test_schedule_task_with_cron(monkeypatch):
