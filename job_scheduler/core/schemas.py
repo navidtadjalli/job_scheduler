@@ -4,7 +4,7 @@ from typing import Optional
 from croniter import CroniterBadCronError, croniter
 from pydantic import BaseModel, field_validator
 
-from job_scheduler.constants import TaskStatus
+from job_scheduler.constants import ResultStatus, TaskStatus
 
 
 class TaskCreate(BaseModel):
@@ -40,7 +40,7 @@ class PaginatedTasks(BaseModel):
 class ExecutedTask(BaseModel):
     task_slug: str
     executed_at: datetime
-    status: TaskStatus
+    status: ResultStatus
     result: str
 
     model_config = {"from_attributes": True}
