@@ -23,6 +23,7 @@ class ScheduledTask(Base):
     name = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     cron_expression = Column(String, nullable=False)
+    status = Column(String, default=TaskStatus.Scheduled.value, nullable=False)
 
     results = relationship("ExecutedTask", back_populates="task")
 
@@ -33,7 +34,7 @@ class ExecutedTask(Base):
     executed_task_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     task_id = Column(UUID(as_uuid=True), ForeignKey("scheduled_tasks.scheduled_task_id"), index=True)
     executed_at = Column(DateTime, default=datetime.now(timezone.utc))
-    status = Column(String, default=TaskStatus.Scheduled.value, nullable=False)
-    result = Column(String, nullable=True)
+    status = Column(String, nullable=False)
+    result = Column(String, nullable=False)
 
     task = relationship("ScheduledTask", back_populates="results")
