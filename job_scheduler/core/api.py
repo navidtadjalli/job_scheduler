@@ -16,9 +16,7 @@ def create_task(task_data: TaskCreate, db: Session = Depends(get_db)):
     try:
         task = ScheduledTask(
             name=task_data.name,
-            cron=task_data.cron,
-            interval_seconds=task_data.interval_seconds,
-            run_at=task_data.run_at,
+            cron_expression=task_data.cron_expression,
         )
 
         db.add(task)
@@ -29,11 +27,10 @@ def create_task(task_data: TaskCreate, db: Session = Depends(get_db)):
 
         db.commit()
 
-        logger.info(f"Created and scheduled task {task.task_id} ({task.name})")
+        logger.info(f"Created and scheduled task {task.slug} ({task.name})")
         return task
 
     except Exception as e:
-        print(str(e))
         db.rollback()
         logger.error(f"Failed to create/schedule task: {e}")
         raise exceptions.TaskCreationFailed()
