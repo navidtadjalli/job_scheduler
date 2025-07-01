@@ -207,10 +207,7 @@ pytest
   - Tests if FastAPI runs the lifespan logic and triggers task recovery on app startup
 
 - `test_post_task.py`: Create task logic
-  - Tests if the endpoint successfully creates a task with `cron` value being set
-  - Tests if the endpoint successfully creates a task with `interval_seconds` being set
-  - Tests if the endpoint successfully creates a task with `run_at` being set
-  - Tests if the endpoint successfully creates a task with all three values being set
+  - Tests if the endpoint successfully creates a task with `cron_expression` value being set
   - Tests if the endpoint handles exceptions during task creation
 
 - `test_recovery.py`: Recovery behavior
