@@ -1,5 +1,9 @@
 # Job Scheduler Service
 
+
+> *This was implemented as part of a take-home interview assignment to build a reliable task scheduler service using FastAPI, Redis, and SQLite with full test coverage.*
+
+
 A minimal, scalable task scheduling service — inspired by cron — built using FastAPI, SQLite, and APScheduler. This backend service allows tasks to be scheduled at specific times, executed reliably, and queried or managed via HTTP APIs.
 
 ---
@@ -97,14 +101,33 @@ Cancel a scheduled task (if not yet executed).
 pytest
 ```
 
-### ✅ Test Modules
+### ✅ Test Modules and Their Scenarios
 
-- `test_post_task.py`: create task logic
-- `test_get_tasks.py`: task listing
-- `test_delete_task.py`: deletion + error handling
+- `test_post_task.py`: (create task logic)
+  - Tested if the endpoint works
+  - Tested if the endpoint handles exceptions during creation of task
+
+- `test_get_tasks.py`: (task listing)
+  - Tested if the endpoint returns the list of tasks
+
+- `test_delete_task.py`: (deletion + error handling)
+  - Tested if the endpoint checks the existence of the task
+  - Tested if the endpoint works and make sure that the task is gotten deleted
+  - Tested if the endpoint is failsafe when removing task from the scheduler and rollbacks the changes if removing failed
+
 - `test_core_tasks.py`: `run_task()` logic and Redis locking
-- `test_recovery.py`: recovery behavior
+  - Tested if the function checks the task exists
+  - Tested if the function works and update the status of the task to `Done` and its result
+  - Tested if the function acquires a lock to prevent double execution of a same task
+- - Tested if the function handles exception during the execution of the task and update task's status to `Failed` and its result
+  - Tested if the function checks the status of the task to be `Scheduled` and not `Done` or `Failed`
 
+- `test_recovery.py`: recovery behavior
+  - Tested if `fail` policy marks past tasks as `Failed`
+  - Tested if `skip` policy doesn't change the past tasks
+  - Tested if `run` policy rescheduled the past tasks
+  - Tested if scheduler failure doesn't result in a crash
+  - Tested if running recovery with no past tasks works fine and does nothing
 ---
 
 ### 📊 Coverage Report

@@ -13,6 +13,10 @@ def create_task(db, name, run_at):
     return task
 
 
+def test_run_task_nonexistent_id():
+    run_task("nonexistent-id")
+
+
 def test_run_task_success(db):
     task = create_task(db, "successful_task", datetime.now(timezone.utc) + timedelta(seconds=5))
     run_task(task.task_id)
@@ -44,10 +48,6 @@ def test_run_task_failure(db, monkeypatch):
     db.refresh(task)
     assert task.status == TaskStatus.Failed
     assert "Error:" in task.result
-
-
-def test_run_task_nonexistent_id():
-    run_task("nonexistent-id")
 
 
 def test_run_task_already_done(db):
