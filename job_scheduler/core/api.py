@@ -18,6 +18,7 @@ def create_task(task_data: TaskCreate, db: Session = Depends(get_db)):
             name=task_data.name,
             run_at=task_data.run_at,
         )
+
         db.add(task)
         db.flush()
         db.refresh(task)
