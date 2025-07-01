@@ -118,16 +118,19 @@ Returns a list of all scheduled or completed tasks.
 #### Response format:
 
 ```json
-[
-  {
-    "task_id": "8f89113e-389a-4d10-8fd2-2f2a24088ac2",
-    "name": "send_report",
-    "run_at": "2025-07-01T10:00:00Z",
-    "status": "done",
-    "result": "Task completed successfully",
-    "created_at": "2025-06-30T15:45:21.123456"
-  }
-]
+{
+  "count": 1,
+  "result": [
+    {
+      "task_id": "8f89113e-389a-4d10-8fd2-2f2a24088ac2",
+      "name": "send_report",
+      "run_at": "2025-07-01T10:00:00Z",
+      "status": "done",
+      "result": "Task completed successfully",
+      "created_at": "2025-06-30T15:45:21.123456"
+    }
+  ]
+}
 ```
 
 > **Note:**
