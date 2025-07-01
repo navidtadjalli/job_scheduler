@@ -2,8 +2,8 @@ from datetime import datetime, timezone
 
 from job_scheduler.config import PastTaskPolicy, settings
 from job_scheduler.constants import TaskStatus
-from job_scheduler.core.models import ScheduledTask
-from job_scheduler.core.tasks import schedule_task
+from core.models import ScheduledTask
+from core.tasks import schedule_task
 from job_scheduler.database import SessionLocal
 from job_scheduler.logger import logger
 

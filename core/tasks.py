@@ -7,7 +7,7 @@ from redis.exceptions import LockError
 from sqlalchemy.orm import Session
 
 from job_scheduler.constants import TaskStatus
-from job_scheduler.core.models import ScheduledTask
+from core.models import ScheduledTask
 from job_scheduler.database import SessionLocal
 from job_scheduler.logger import logger
 from job_scheduler.redis_client import redis_client
