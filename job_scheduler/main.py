@@ -20,3 +20,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 Base.metadata.create_all(bind=engine)
 app.include_router(api.router)
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
