@@ -1,5 +1,3 @@
-from datetime import datetime, timedelta, timezone
-
 from fastapi.testclient import TestClient
 
 from job_scheduler.constants import TaskStatus
