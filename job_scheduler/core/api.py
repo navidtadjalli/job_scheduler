@@ -48,7 +48,7 @@ def delete_task(task_id: str, db: Session = Depends(get_db)):
         task = db.query(ScheduledTask).filter_by(task_id=task_id).first()
         if not task:
             raise exceptions.TaskNotFound()
-        
+
         remove_task(task_id)
 
         db.delete(task)

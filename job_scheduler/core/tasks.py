@@ -44,7 +44,7 @@ def execute_task(db: Session, task_id: str):
         task.status = TaskStatus.Done
         task.result = result
         logger.info(f"Task {task.task_id} completed successfully.")
-    
+
 
 def recover_task(db: Session, task_id: str, exception_text: str):
     try:
