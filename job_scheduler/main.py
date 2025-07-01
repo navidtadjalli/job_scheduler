@@ -2,9 +2,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from job_scheduler.core import api
-from job_scheduler.core.models import Base
-from job_scheduler.core.recovery import recover_scheduled_tasks
+from core import api
+from core.models import Base
+from core.recovery import recover_scheduled_tasks
 from job_scheduler.database import engine
 from job_scheduler.logger import logger
 
