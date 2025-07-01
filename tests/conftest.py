@@ -1,6 +1,6 @@
 import pytest
 
-from job_scheduler.core.models import ScheduledTask
+from core.models import ScheduledTask
 from job_scheduler.database import SessionLocal
 
 
