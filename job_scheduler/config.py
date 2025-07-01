@@ -15,6 +15,7 @@ class Settings(BaseSettings):
         "extra": "ignore",
     }
 
+
 def get_settings():
     try:
         return Settings()
@@ -22,5 +23,6 @@ def get_settings():
         print("Invalid configuration:")
         print(e)
         raise
+
 
 settings = get_settings()

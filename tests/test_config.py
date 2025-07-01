@@ -1,6 +1,8 @@
 import pytest
 from pydantic import ValidationError
+
 import job_scheduler.config as config
+
 
 def test_missing_required_settings(monkeypatch):
     # Clear required env vars
