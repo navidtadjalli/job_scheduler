@@ -222,6 +222,7 @@ pytest
 
 - `test_schemas.py`: Schema and validation logic
   - Tests if a task is valid with a valid `cron_expression`
+  - Tests if schema validates the value of `cron_expression` field
   - Tests if a task is **invalid** when `cron_expression` field is missing
 
 ---
