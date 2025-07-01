@@ -15,10 +15,12 @@ class Settings(BaseSettings):
         "extra": "ignore",
     }
 
+def get_settings():
+    try:
+        return Settings()
+    except ValidationError as e:
+        print("Invalid configuration:")
+        print(e)
+        raise
 
-try:
-    settings = Settings()
-except ValidationError as e:
-    print("Invalid configuration:")
-    print(e)
-    raise
+settings = get_settings()
