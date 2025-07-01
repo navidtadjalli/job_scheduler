@@ -22,7 +22,7 @@ class TaskCreate(BaseModel):
         return v
 
 
-class TaskRead(BaseModel):
+class ScheduledTaskRead(BaseModel):
     slug: str
     name: str
     cron_expression: str
@@ -32,12 +32,12 @@ class TaskRead(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class PaginatedTasks(BaseModel):
+class PaginatedScheduledTasks(BaseModel):
     count: int
-    result: list[TaskRead]
+    result: list[ScheduledTaskRead]
 
 
-class ExecutedTask(BaseModel):
+class ExecutedTaskRead(BaseModel):
     task_slug: str
     executed_at: datetime
     status: ResultStatus
@@ -48,4 +48,4 @@ class ExecutedTask(BaseModel):
 
 class PaginatedExecutedTasks(BaseModel):
     count: int
-    result: list[ExecutedTask]
+    result: list[ExecutedTaskRead]
