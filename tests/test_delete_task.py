@@ -2,9 +2,9 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi.testclient import TestClient
 
-from job_scheduler.main import app
-from job_scheduler.core.models import ScheduledTask
 from job_scheduler.constants import TaskStatus
+from job_scheduler.core.models import ScheduledTask
+from job_scheduler.main import app
 
 client = TestClient(app)
 

@@ -1,7 +1,9 @@
+from contextlib import asynccontextmanager
+
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from contextlib import asynccontextmanager
-import pytest
+
 
 @pytest.fixture
 def recovery_patch(monkeypatch):
@@ -13,12 +15,14 @@ def recovery_patch(monkeypatch):
     monkeypatch.setattr("job_scheduler.core.recovery.recover_scheduled_tasks", mock_recover)
     return called
 
+
 def test_lifespan_triggers_recovery(recovery_patch):
     from job_scheduler.core.api import router  # import routes only here
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         from job_scheduler.core.recovery import recover_scheduled_tasks
+
         recover_scheduled_tasks()
         yield
 
