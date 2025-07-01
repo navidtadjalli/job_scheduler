@@ -39,7 +39,7 @@ def create_task(task_data: TaskCreate, db: Session = Depends(get_db)):
 @router.get("/tasks", response_model=PaginatedTasks)
 def list_tasks(db: Session = Depends(get_db), skip: int = Query(0, ge=0), limit: int = Query(10, le=100)):
     logger.info("Listing all tasks")
-    tasks = db.query(ScheduledTask).order_by(ScheduledTask.run_at).offset(skip).limit(limit).all()
+    tasks = db.query(ScheduledTask).order_by(ScheduledTask.created_at).offset(skip).limit(limit).all()
     count = db.query(ScheduledTask).count()
 
     return {
