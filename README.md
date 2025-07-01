@@ -1,10 +1,10 @@
 # Job Scheduler Service
 
 
-> *This was implemented as part of a take-home interview assignment to build a reliable task scheduler service using FastAPI, Redis, and SQLite with full test coverage.*
+> *This was implemented as part of a take-home interview assignment to build a reliable task scheduler service using FastAPI, Redis, and PostgreSQL with full test coverage.*
 
 
-A minimal, scalable task scheduling service — inspired by cron — built using FastAPI, SQLite, and APScheduler. This backend service allows tasks to be scheduled at specific times, executed reliably, and queried or managed via HTTP APIs.
+A minimal, scalable task scheduling service — inspired by cron — built using FastAPI, PostgreSQL, Redis, and APScheduler. This backend service allows tasks to be scheduled at specific times, executed reliably, and queried or managed via HTTP APIs.
 
 ---
 
@@ -24,7 +24,7 @@ A minimal, scalable task scheduling service — inspired by cron — built using
 ## 📦 Tech Stack
 
 - **FastAPI** — async web framework
-- **SQLite** — embedded relational DB (simple + file-based)
+- **PostgreSQL** — production-grade relational database with concurrency and transaction support
 - **APScheduler** — robust job scheduler
 - **Redis** — distributed locking for task execution
 - **Pydantic v2 + pydantic-settings** — clean config & validation
@@ -53,6 +53,20 @@ python migrate.py
 ```bash
 uvicorn job_scheduler.main:app --reload
 ```
+
+### 📦 Dockerized Setup (optional)
+
+You can also use Docker Compose to spin up everything:
+
+```bash
+docker-compose up --build
+```
+
+This will start:
+
+* FastAPI app
+* PostgreSQL (`db`)
+* Redis (`redis`)
 
 ---
 
@@ -85,11 +99,11 @@ Cancel a scheduled task (if not yet executed).
 
 ## ⚙️ Configuration (`.env`)
 
-| Variable              | Description                                 | Example                      |
-|-----------------------|---------------------------------------------|------------------------------|
-| `RECOVER_PAST_TASKS`  | What to do with tasks whose run time passed | `skip` / `fail` / `run`      |
-| `REDIS_URL`           | Redis connection string                     | `redis://localhost:6379/0`   |
-| `DB_URL`              | SQLAlchemy DB URI                           | `sqlite:///./tasks.db`       |
+| Variable              | Description                                 | Example                                                       |
+|-----------------------|---------------------------------------------|---------------------------------------------------------------|
+| `RECOVER_PAST_TASKS`  | What to do with tasks whose run time passed | `skip` / `fail` / `run`                                       |
+| `REDIS_URL`           | Redis connection string                     | `redis://localhost:6379/0`                                    |
+| `DB_URL`              | SQLAlchemy DB URI                           | `postgresql+psycopg2://postgres:postgres@db:5432/schedule_db` |
 
 📁 See `.env.sample` for a template.
 
@@ -103,34 +117,36 @@ pytest
 
 ### ✅ Test Modules and Their Scenarios
 
-- `test_post_task.py`: (create task logic)
-  - Tested if the endpoint works
-  - Tested if the endpoint handles exceptions during creation of task
+- `test_post_task.py`: Create task logic
+  - Tests if the endpoint successfully creates a task
+  - Tests if the endpoint handles exceptions during task creation
 
-- `test_get_tasks.py`: (task listing)
-  - Tested if the endpoint returns the list of tasks
+- `test_get_tasks.py`: Task listing
+  - Tests if the endpoint returns the list of all tasks
 
-- `test_delete_task.py`: (deletion + error handling)
-  - Tested if the endpoint checks the existence of the task
-  - Tested if the endpoint works and make sure that the task is gotten deleted
-  - Tested if the endpoint is failsafe when removing task from the scheduler and rollbacks the changes if removing failed
+- `test_delete_task.py`: Deletion + error handling
+  - Tests if the endpoint checks for task existence
+  - Tests if the task is properly deleted from the database
+  - Tests if the endpoint handles scheduler failures and rolls back database changes when necessary
 
 - `test_core_tasks.py`: `run_task()` logic and Redis locking
-  - Tested if the function checks the task exists
-  - Tested if the function works and update the status of the task to `Done` and its result
-  - Tested if the function acquires a lock to prevent double execution of a same task
-- - Tested if the function handles exception during the execution of the task and update task's status to `Failed` and its result
-  - Tested if the function checks the status of the task to be `Scheduled` and not `Done` or `Failed`
+  - Tests if the function validates task existence
+  - Tests if the task is executed and status updated to `Done` along with its result
+  - Tests if Redis locking prevents double execution of the same task
+  - Tests if the function handles exceptions during execution and updates the status to `Failed`
+  - Tests if the task is only executed when its status is `Scheduled`
 
-- `test_recovery.py`: recovery behavior
-  - Tested if `fail` policy marks past tasks as `Failed`
-  - Tested if `skip` policy doesn't change the past tasks
-  - Tested if `run` policy rescheduled the past tasks
-  - Tested if scheduler failure doesn't result in a crash
-  - Tested if running recovery with no past tasks works fine and does nothing
+- `test_recovery.py`: Recovery behavior
+  - Tests if the `fail` policy marks past-due tasks as `Failed`
+  - Tests if the `skip` policy leaves past-due tasks unchanged
+  - Tests if the `run` policy re-schedules past-due tasks
+  - Tests if recovery handles scheduler failures gracefully
+  - Tests if recovery works correctly when there are no tasks to process
 
-- `test_lifespan.py`: startup task restoration
-  - Tested if FastAPI gets started with a lifespan it will run it
+- `test_lifespan.py`: Startup task restoration
+  - Tests if FastAPI runs the lifespan logic and triggers task recovery on app startup
+
+
 ---
 
 ### 📊 Coverage Report
@@ -164,17 +180,17 @@ job_scheduler/database.py            5      0   100%
 job_scheduler/dependencies.py        6      0   100%
 job_scheduler/exceptions.py         19      0   100%
 job_scheduler/logger.py             10      1    90%   19
-job_scheduler/main.py               16      0   100%
+job_scheduler/main.py               16      4    75%   14-17
 job_scheduler/redis_client.py        3      0   100%
 --------------------------------------------------------------
-TOTAL                              254      7    97%
+TOTAL                              254     11    96%
 ```
 
 ---
 
 ## 🧠 Design Justification
 
-This service uses **FastAPI** to provide a clean and testable interface for interacting with a lightweight job scheduler. SQLite was chosen for simplicity and persistence, while **Redis locks** guarantee safe execution even in a distributed setup. The design is modular, extensible, and robust against failure — with full test coverage and environment-based configuration.
+This service uses **FastAPI** to provide a clean and testable interface for interacting with a lightweight job scheduler. PostgreSQL was selected to support concurrent writes, transactional safety, and containerized multi-node deployments. The schema remains flat, but can evolve into relational models (e.g., tasks linked to users or audit logs), while **Redis locks** guarantee safe execution even in a distributed setup. The design is modular, extensible, and robust against failure — with full test coverage and environment-based configuration.
 
 ---
 
