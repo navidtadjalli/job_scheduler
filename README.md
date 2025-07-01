@@ -10,9 +10,10 @@ A minimal, scalable task scheduling service — inspired by cron — built using
 - Automatically execute tasks and store results (`APScheduler`)
 - View all scheduled and completed tasks (`GET /tasks`)
 - Remove scheduled tasks (`DELETE /tasks/{id}`)
-- Automatically recover unsent tasks after restarts
+- Automatically recover unsent tasks after restarts (via `lifespan`)
 - Redis-based locking to prevent double execution
 - Configurable recovery policy via `.env`
+- **Full test coverage including exception paths and startup logic**
 
 ---
 
@@ -24,6 +25,8 @@ A minimal, scalable task scheduling service — inspired by cron — built using
 - **Redis** — distributed locking for task execution
 - **Pydantic v2 + pydantic-settings** — clean config & validation
 - **Pytest** — test suite with full coverage
+- **Lifespan API** — used for startup recovery hook
+- **pytest-cov** — test coverage measurement
 
 ---
 
@@ -58,7 +61,7 @@ Schedule a new task.
 ```json
 {
   "name": "send_report",
-  "run_at": "2025-07-01T10:00:00"
+  "run_at": "2025-07-01T10:00:00Z"
 }
 ```
 
@@ -94,11 +97,52 @@ Cancel a scheduled task (if not yet executed).
 pytest
 ```
 
-Includes:
-- Unit tests for all endpoints
-- Full recovery behavior under all `RECOVER_PAST_TASKS` modes
-- Redis lock handling (mocked)
-- Scheduler error cases
+### ✅ Test Modules
+
+- `test_post_task.py`: create task logic
+- `test_get_tasks.py`: task listing
+- `test_delete_task.py`: deletion + error handling
+- `test_core_tasks.py`: `run_task()` logic and Redis locking
+- `test_recovery.py`: recovery behavior
+
+---
+
+### 📊 Coverage Report
+
+To generate coverage:
+
+```bash
+pytest --cov=job_scheduler --cov-report=term-missing --cov-report=html
+```
+
+This will output:
+- Terminal coverage % with uncovered lines
+- HTML report at `htmlcov/index.html` (open in browser)
+
+---
+### ✅ Test Coverage
+
+```bash
+Name                             Stmts   Miss  Cover   Missing
+--------------------------------------------------------------
+job_scheduler/__init__.py            0      0   100%
+job_scheduler/config.py             11      0   100%
+job_scheduler/constants.py           9      0   100%
+job_scheduler/core/__init__.py       0      0   100%
+job_scheduler/core/api.py           46      0   100%
+job_scheduler/core/models.py        16      0   100%
+job_scheduler/core/recovery.py      36      0   100%
+job_scheduler/core/schemas.py       14      0   100%
+job_scheduler/core/tasks.py         63      6    90%   56-57, 79-80, 98-99
+job_scheduler/database.py            5      0   100%
+job_scheduler/dependencies.py        6      0   100%
+job_scheduler/exceptions.py         19      0   100%
+job_scheduler/logger.py             10      1    90%   19
+job_scheduler/main.py               16      0   100%
+job_scheduler/redis_client.py        3      0   100%
+--------------------------------------------------------------
+TOTAL                              254      7    97%
+```
 
 ---
 
@@ -112,21 +156,34 @@ This service uses **FastAPI** to provide a clean and testable interface for inte
 
 ```
 job_scheduler/
-├── job_scheduler/        # Core application logic
-│   ├── main.py           # Entry point with FastAPI + scheduler
-│   ├── config.py         # App settings (env-based)
-│   ├── core/             # Domain logic
-│   │   ├── models.py     # SQLAlchemy models
-│   │   ├── tasks.py      # Scheduling logic
-│   │   ├── recovery.py   # Restart-safe logic
-│   │   └── api.py        # HTTP routes
-├── tests/                # Pytest-based test suite
-├── migrate.py            # DB schema initializer
-├── .env.sample           # Example configuration
+├── job_scheduler/                  # Core application package
+│   ├── main.py                     # FastAPI app entry point + lifespan
+│   ├── config.py                   # Environment-based settings via Pydantic
+│   ├── constants.py                # Centralized constants and identifiers
+│   ├── database.py                 # SQLAlchemy engine and session factory
+│   ├── dependencies.py             # FastAPI dependencies (e.g., DB access)
+│   ├── exceptions.py               # Custom exceptions with error codes
+│   ├── logger.py                   # App-wide logging configuration
+│   ├── redis_client.py             # Redis connection + locking helper
+│   └── core/                       # Core domain logic
+│       ├── api.py                  # FastAPI route handlers
+│       ├── models.py               # SQLAlchemy task models
+│       ├── recovery.py             # Task recovery on app restart
+│       ├── schemas.py              # Pydantic request/response models
+│       └── tasks.py                # Task runner logic + Redis locking
+│
+├── tests/                          # Pytest-based test suite
+│   ├── conftest.py                 # Shared fixtures (e.g., DB setup)
+│   ├── test_post_task.py           # POST /tasks
+│   ├── test_get_tasks.py           # GET /tasks
+│   ├── test_delete_task.py         # DELETE /tasks/{id}
+│   ├── test_core_tasks.py          # run_task function logic
+│   └── test_recovery.py            # Task recovery scenarios
+│
+├── .env.sample                     # Sample env vars for local dev
+├── .gitignore                      # Git exclusions (e.g., venv, pycache)
+├── migrate.py                      # Schema initializer using SQLAlchemy
+├── pyproject.toml                  # Project metadata + pytest plugins
+├── pytest.ini                      # Pytest config and options
+└── requirements.txt                # Python dependencies list
 ```
-
----
-
-## ✅ Author & Notes
-
-This project was created as part of a technical interview task to design a minimal task scheduling service. It follows best practices in service design, testability, and modularity.
