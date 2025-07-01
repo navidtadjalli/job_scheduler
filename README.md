@@ -10,6 +10,7 @@ A minimal, scalable task scheduling service — inspired by cron — built using
 
 ## 🚀 Features
 
+- Support for recurring tasks via `cron`, `interval_seconds`, or `run_at` expression
 - Schedule tasks to run at a specific time (`POST /tasks`)
 - Automatically execute tasks and store results (`APScheduler`)
 - View all scheduled and completed tasks (`GET /tasks`)
@@ -79,15 +80,69 @@ Schedule a new task.
 ```json
 {
   "name": "send_report",
+  "cron": "0 9 * * *",
+  "interval_seconds": 3600,
   "run_at": "2025-07-01T10:00:00Z"
 }
 ```
 
----
+#### Task Timing Options
 
+You can specify **when** the task should run using one of the following:
+
+| Field              | Type     | Meaning                              |
+| ------------------ | -------- | ------------------------------------ |
+| `cron`             | string   | Cron expression (e.g. `"0 9 * * *"`) |
+| `interval_seconds` | integer  | Run every N seconds                  |
+| `run_at`           | datetime | One-time scheduled time              |
+
+> **Priority rule**
+>
+> If multiple fields are provided, only one will be used — in this order of precedence:  
+>
+> ```text
+> cron → interval_seconds → run_at
+> ```
+
+#### Validations
+
+* At least **one** of `cron`, `interval_seconds`, or `run_at` **must** be provided
+* `interval_seconds` must be a positive integer if provided
+* `cron` must be a valid crontab expression (format like `"*/5 * * * *"`)
+
+---
 ### `GET /tasks`
 
-List all tasks.
+Returns a list of all scheduled or completed tasks.
+
+#### Response format:
+
+```json
+[
+  {
+    "task_id": "8f89113e-389a-4d10-8fd2-2f2a24088ac2",
+    "name": "send_report",
+    "run_at": "2025-07-01T10:00:00Z",
+    "status": "done",
+    "result": "Task completed successfully",
+    "created_at": "2025-06-30T15:45:21.123456"
+  }
+]
+```
+
+> **Note:**
+> If a task was created using `cron` or `interval_seconds`, those fields are **not shown** in the response. Only `run_at` is returned as the "next execution time" for compatibility.
+
+### 🔍 `TaskRead` Schema Fields:
+
+| Field        | Type        | Description                          |
+| ------------ | ----------- | ------------------------------------ |
+| `task_id`    | string      | Unique ID of the task                |
+| `name`       | string      | Name or label for the task           |
+| `run_at`     | datetime    | Scheduled execution time (next run)  |
+| `status`     | enum        | `scheduled`, `done`, or `failed`     |
+| `result`     | string/null | Output or log result (once run)      |
+| `created_at` | datetime    | When the task was originally created |
 
 ---
 
@@ -146,6 +201,13 @@ pytest
 - `test_lifespan.py`: Startup task restoration
   - Tests if FastAPI runs the lifespan logic and triggers task recovery on app startup
 
+- `test_schemas.py`: Schema and validation logic
+  - Tests if a task is valid with only a valid `cron`
+  - Tests if a task is valid with only a valid `run_at`
+  - Tests if a task is valid with only a valid `interval_seconds`
+  - Tests if a task is valid when all three timing fields are present
+  - Tests if a task is **invalid** when none of the timing fields are provided
+  - Tests if a task is **invalid** when a negative value is passed for `interval_seconds`
 
 ---
 
@@ -168,22 +230,22 @@ This will output:
 Name                             Stmts   Miss  Cover   Missing
 --------------------------------------------------------------
 job_scheduler/__init__.py            0      0   100%
-job_scheduler/config.py             11      0   100%
-job_scheduler/constants.py           9      0   100%
+job_scheduler/config.py             15      4    73%   21-24
+job_scheduler/constants.py          12      0   100%
 job_scheduler/core/__init__.py       0      0   100%
 job_scheduler/core/api.py           46      0   100%
-job_scheduler/core/models.py        16      0   100%
+job_scheduler/core/models.py        17      0   100%
 job_scheduler/core/recovery.py      36      0   100%
-job_scheduler/core/schemas.py       14      0   100%
-job_scheduler/core/tasks.py         63      6    90%   56-57, 79-80, 98-99
-job_scheduler/database.py            5      0   100%
+job_scheduler/core/schemas.py       27      0   100%
+job_scheduler/core/tasks.py         67      7    90%   58-59, 81-82, 88, 90, 94
+job_scheduler/database.py           17      3    82%   23-25
 job_scheduler/dependencies.py        6      0   100%
 job_scheduler/exceptions.py         19      0   100%
 job_scheduler/logger.py             10      1    90%   19
-job_scheduler/main.py               16      4    75%   14-17
+job_scheduler/main.py               19      5    74%   14-17, 27
 job_scheduler/redis_client.py        3      0   100%
 --------------------------------------------------------------
-TOTAL                              254     11    96%
+TOTAL                              294     20    93%
 ```
 
 ---
@@ -221,7 +283,8 @@ job_scheduler/
 │   ├── test_delete_task.py         # DELETE /tasks/{id}
 │   ├── test_core_tasks.py          # run_task function logic
 │   ├── test_recovery.py            # Task recovery scenarios
-│   └── test_lifespan.py            # Lifespan startup behavior
+│   ├── test_lifespan.py            # Lifespan startup behavior
+│   └── test_schemas.py             # Tests for `TaskCreate` schema validation
 │
 ├── .env.sample                     # Sample env vars for local dev
 ├── .gitignore                      # Git exclusions (e.g., venv, pycache)

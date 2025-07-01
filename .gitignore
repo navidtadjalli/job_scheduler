@@ -79,4 +79,4 @@ desktop.ini
 
 .pytest_cache
 dump.rdb
-tasks.db
+test.db
