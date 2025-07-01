@@ -10,7 +10,6 @@ def test_valid_cron():
     assert task.cron_expression == "*/5 * * * *"
 
 
-
 def test_missing_all_time_fields():
     with pytest.raises(ValueError) as e:
         TaskCreate(name="bad task")

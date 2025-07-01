@@ -23,11 +23,10 @@ class TaskCreate(BaseModel):
 
 
 class TaskRead(BaseModel):
-    task_id: str
+    slug: str
     name: str
     cron_expression: str
     status: TaskStatus
-    result: str | None
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -36,3 +35,17 @@ class TaskRead(BaseModel):
 class PaginatedTasks(BaseModel):
     count: int
     result: list[TaskRead]
+
+
+class ExecutedTask(BaseModel):
+    task_slug: str
+    executed_at: datetime
+    status: TaskStatus
+    result: str
+
+    model_config = {"from_attributes": True}
+
+
+class PaginatedExecutedTasks(BaseModel):
+    count: int
+    result: list[ExecutedTask]
