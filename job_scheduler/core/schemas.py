@@ -1,39 +1,34 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, field_validator, model_validator
+from croniter import CroniterBadCronError, croniter
+from pydantic import BaseModel, field_validator
 
 from job_scheduler.constants import TaskStatus
 
 
 class TaskCreate(BaseModel):
     name: str
-    cron: Optional[str] = None  # For cron, like '*/2 * * * *'
-    interval_seconds: Optional[int] = None  # For interval
-    run_at: Optional[datetime] = None  # For one-time
+    cron_expression: str
 
-    @model_validator(mode="after")
-    def check_timing_fields(self) -> "TaskCreate":
-        if not any([self.run_at, self.interval_seconds, self.cron]):
-            raise ValueError("At least one of 'cron', 'interval_seconds', or 'run_at' must be provided.")
-        return self
-
-    @field_validator("interval_seconds")
-    def interval_must_be_positive(cls, v):
-        if v is not None and v <= 0:
-            raise ValueError("interval_seconds must be positive")
+    @field_validator("cron_expression")
+    def validate_cron_format(cls, v):
+        if v is None:
+            return v
+        try:
+            croniter(v)
+        except (CroniterBadCronError, ValueError) as e:
+            raise ValueError(f"Invalid cron expression: {v!r}") from e
         return v
 
 
 class TaskRead(BaseModel):
     task_id: str
     name: str
+    cron_expression: str
     status: TaskStatus
     result: str | None
     created_at: datetime
-    cron: Optional[str] = None
-    interval_seconds: Optional[int] = None
-    run_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
 

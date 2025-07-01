@@ -221,12 +221,8 @@ pytest
   - Tests if recovery works correctly when there are no tasks to process
 
 - `test_schemas.py`: Schema and validation logic
-  - Tests if a task is valid with only a valid `cron`
-  - Tests if a task is valid with only a valid `run_at`
-  - Tests if a task is valid with only a valid `interval_seconds`
-  - Tests if a task is valid when all three timing fields are present
-  - Tests if a task is **invalid** when none of the timing fields are provided
-  - Tests if a task is **invalid** when a negative value is passed for `interval_seconds`
+  - Tests if a task is valid with a valid `cron_expression`
+  - Tests if a task is **invalid** when `cron_expression` field is missing
 
 ---
 
