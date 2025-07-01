@@ -128,6 +128,9 @@ pytest
   - Tested if `run` policy rescheduled the past tasks
   - Tested if scheduler failure doesn't result in a crash
   - Tested if running recovery with no past tasks works fine and does nothing
+
+- `test_lifespan.py`: startup task restoration
+  - Tested if FastAPI gets started with a lifespan it will run it
 ---
 
 ### 📊 Coverage Report
@@ -201,7 +204,8 @@ job_scheduler/
 │   ├── test_get_tasks.py           # GET /tasks
 │   ├── test_delete_task.py         # DELETE /tasks/{id}
 │   ├── test_core_tasks.py          # run_task function logic
-│   └── test_recovery.py            # Task recovery scenarios
+│   ├── test_recovery.py            # Task recovery scenarios
+│   └── test_lifespan.py            # Lifespan startup behavior
 │
 ├── .env.sample                     # Sample env vars for local dev
 ├── .gitignore                      # Git exclusions (e.g., venv, pycache)
