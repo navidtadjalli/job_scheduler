@@ -172,24 +172,40 @@ pytest
 
 ### ✅ Test Modules and Their Scenarios
 
-- `test_post_task.py`: Create task logic
-  - Tests if the endpoint successfully creates a task
-  - Tests if the endpoint handles exceptions during task creation
+- `test_config.py`: Settings of Project
+  - Tests if Settings class checks `DB_URL` is set
+  - Tests if Settings class checks `REDIS_URL` is set
 
-- `test_get_tasks.py`: Task listing
-  - Tests if the endpoint returns the list of all tasks
+- `test_core_tasks.py`: `run_task()` logic and Redis locking
+  - Tests if the function validates task existence
+  - Tests if the `get_result` function works
+  - Tests if the `get_result_for_error` function works
+  - Tests if the task is executed and status updated to `Done` along with its result
+  - Tests if Redis locking prevents double execution of the same task
+  - Tests if the function handles exceptions during execution and updates the status to `Failed`
+  - Tests if the task is only executed when its status is `Scheduled`
+  - Tests if the task is executed with `cron` property being set
+  - Tests if the task is executed with `interval_seconds` property being set
+  - Tests if the task is executed with `run_at` property being set
+  - Tests if the `scheduled_task` checks that at least one of `cron`, `interval_seconds`, or `run_at` is set and if not raised an exception
 
 - `test_delete_task.py`: Deletion + error handling
   - Tests if the endpoint checks for task existence
   - Tests if the task is properly deleted from the database
   - Tests if the endpoint handles scheduler failures and rolls back database changes when necessary
 
-- `test_core_tasks.py`: `run_task()` logic and Redis locking
-  - Tests if the function validates task existence
-  - Tests if the task is executed and status updated to `Done` along with its result
-  - Tests if Redis locking prevents double execution of the same task
-  - Tests if the function handles exceptions during execution and updates the status to `Failed`
-  - Tests if the task is only executed when its status is `Scheduled`
+- `test_get_tasks.py`: Task listing
+  - Tests if the endpoint returns the list of all tasks
+
+- `test_health_check.py`: `/health` endpoint
+  - Tests if the endpoint works correctly
+
+- `test_lifespan.py`: Startup task restoration
+  - Tests if FastAPI runs the lifespan logic and triggers task recovery on app startup
+
+- `test_post_task.py`: Create task logic
+  - Tests if the endpoint successfully creates a task
+  - Tests if the endpoint handles exceptions during task creation
 
 - `test_recovery.py`: Recovery behavior
   - Tests if the `fail` policy marks past-due tasks as `Failed`
@@ -197,9 +213,6 @@ pytest
   - Tests if the `run` policy re-schedules past-due tasks
   - Tests if recovery handles scheduler failures gracefully
   - Tests if recovery works correctly when there are no tasks to process
-
-- `test_lifespan.py`: Startup task restoration
-  - Tests if FastAPI runs the lifespan logic and triggers task recovery on app startup
 
 - `test_schemas.py`: Schema and validation logic
   - Tests if a task is valid with only a valid `cron`

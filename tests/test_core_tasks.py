@@ -119,7 +119,7 @@ def test_schedule_task_with_run_at(monkeypatch):
     schedule_task(task)
 
 
-def test_schedule_task_invalid(monkeypatch):
+def test_schedule_task_invalid():
     task = ScheduledTask(task_id="bad", name="bad task")
 
     with pytest.raises(ValueError, match="Invalid task: no timing provided"):
