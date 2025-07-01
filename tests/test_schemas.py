@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from job_scheduler.core.schemas import TaskCreate
+from core.schemas import TaskCreate
 
 
 def test_valid_cron_expression():

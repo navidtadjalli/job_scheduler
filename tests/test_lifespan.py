@@ -12,16 +12,16 @@ def recovery_patch(monkeypatch):
     def mock_recover():
         called["was_called"] = True
 
-    monkeypatch.setattr("job_scheduler.core.recovery.recover_scheduled_tasks", mock_recover)
+    monkeypatch.setattr("core.recovery.recover_scheduled_tasks", mock_recover)
     return called
 
 
 def test_lifespan_triggers_recovery(recovery_patch):
-    from job_scheduler.core.api import router  # import routes only here
+    from core.api import router  # import routes only here
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        from job_scheduler.core.recovery import recover_scheduled_tasks
+        from core.recovery import recover_scheduled_tasks
 
         recover_scheduled_tasks()
         yield
