@@ -17,7 +17,7 @@ class ScheduledTask(Base):
     __tablename__ = "scheduled_tasks"
 
     scheduled_task_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    slug = Column(String, index=True, default=generate_slug)
+    slug = Column(String, index=True, unique=True, default=generate_slug)
     name = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     cron_expression = Column(String, nullable=False)
