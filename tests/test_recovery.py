@@ -1,4 +1,3 @@
-
 from core.models import ScheduledTask
 from core.recovery import recover_scheduled_tasks
 

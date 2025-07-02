@@ -16,8 +16,8 @@ def recover_scheduled_tasks():
         for task in tasks:
             try:
                 schedule_task(task)
-                logger.info(f"Recovered task {task.scheduled_task_id} ({task.name}) for {task.run_at}")
+                logger.info(f"Recovered task {task.slug} ({task.name})")
             except Exception as e:
-                logger.error(f"Failed to recover task {task.scheduled_task_id}: {e}")
+                logger.error(f"Failed to recover task {task.slug}: {e}")
     finally:
         db.close()

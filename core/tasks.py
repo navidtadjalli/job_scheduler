@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from uuid import UUID
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -16,8 +15,8 @@ scheduler = BackgroundScheduler()
 scheduler.start()
 
 
-def get_task_for_scheduler(db: Session, task_id: str) -> ScheduledTask:
-    return db.query(ScheduledTask).filter(ScheduledTask.scheduled_task_id == task_id).first()
+def get_task_for_scheduler(db: Session, task_slug: str) -> ScheduledTask:
+    return db.query(ScheduledTask).filter(ScheduledTask.slug == task_slug).first()
 
 
 def get_result(task: ScheduledTask) -> str:
@@ -43,12 +42,12 @@ def create_executed_task(task: ScheduledTask, status: ResultStatus, result: str)
         db.commit()
 
 
-def execute_task(db: Session, task_id: str):
+def execute_task(db: Session, task_slug: str):
     with db.begin():
-        task = get_task_for_scheduler(db=db, task_id=task_id)
+        task = get_task_for_scheduler(db=db, task_slug=task_slug)
 
         if not task:
-            logger.info(f"Task {task_id} not found or already processed.")
+            logger.info(f"Task {task_slug} not found or already processed.")
             return
 
         logger.info(f"Executing task {task.scheduled_task_id} - {task.name}")
@@ -60,13 +59,13 @@ def execute_task(db: Session, task_id: str):
             result=get_result(task),
         )
 
-        logger.info(f"Task {task.scheduled_task_id} completed successfully.")
+        logger.info(f"Task {task_slug} completed successfully.")
 
 
-def recover_task(db: Session, task_id: str, exception_text: str):
+def recover_task(db: Session, task_slug: str, exception_text: str):
     try:
         with db.begin():
-            task = get_task_for_scheduler(db=db, task_id=task_id)
+            task = get_task_for_scheduler(db=db, task_slug=task_slug)
             if task:
                 task.next_run_at = get_task_next_run_at(task)
                 create_executed_task(
@@ -78,27 +77,27 @@ def recover_task(db: Session, task_id: str, exception_text: str):
         logger.critical(f"Rollback failed: {rollback_err}")
 
 
-def run_task(task_id: UUID):
-    lock_key = f"lock:task:{task_id}"
+def run_task(task_slug: str):
+    lock_key = f"lock:task:{task_slug}"
     lock = redis_client.lock(lock_key, timeout=300, blocking_timeout=5)
 
     if not lock.acquire(blocking=True):
-        logger.warning(f"Task {task_id} is already locked by another process.")
+        logger.warning(f"Task {task_slug} is already locked by another process.")
         return
 
     db: Session = SessionLocal()
     try:
-        execute_task(db=db, task_id=task_id)
+        execute_task(db=db, task_slug=task_slug)
     except Exception as e:
         exception_text: str = str(e)
-        logger.error(f"Task {task_id} failed: {exception_text}")
-        recover_task(db=db, task_id=task_id, exception_text=exception_text)
+        logger.error(f"Task {task_slug} failed: {exception_text}")
+        recover_task(db=db, task_slug=task_slug, exception_text=exception_text)
 
     finally:
         try:
             lock.release()
         except LockError:
-            logger.warning(f"Failed to release lock for task {task_id}")
+            logger.warning(f"Failed to release lock for task {task_slug}")
         db.close()
 
 
@@ -109,18 +108,19 @@ def schedule_task(task: ScheduledTask):
         scheduler.add_job(
             run_task,
             trigger=trigger,
-            args=[str(task.scheduled_task_id)],
-            id=str(task.scheduled_task_id),
+            args=[task.slug],
+            id=task.slug,
             replace_existing=True,
         )
 
         task.next_run_at = get_task_next_run_at(task=task)
 
-        logger.info(f"Scheduled task {task.scheduled_task_id} ({task.name})")
+        logger.info(f"Scheduled task {task.slug} ({task.name})")
 
     except Exception as e:
-        logger.error(f"Failed to schedule task {task.scheduled_task_id}: {str(e)}")
+        logger.error(f"Failed to schedule task {task.slug}: {str(e)}")
 
 
-def remove_task(task_id: str):
-    scheduler.remove_job(task_id)
+def remove_task(task_slug: str):
+    scheduler.remove_job(task_slug)
+    logger.info(f"Removed task {task_slug}")
