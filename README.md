@@ -328,3 +328,9 @@ job_scheduler/
 ├── pyproject.toml                  # Project metadata + pytest plugins
 └── requirements.txt                # Python dependencies list
 ```
+
+## 🔧 Possible Enhancements
+
+#### Update Task Endpoint:
+An endpoint like PUT /tasks/{slug} could be added to allow updating a task’s `name` or `cron_expression`.
+For now, this feature is not implemented, as the core functionality (create, schedule, run, list, delete, recover) was prioritized for clarity and test coverage.
