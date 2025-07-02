@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 
 from core.models import ScheduledTask
 from core.recovery import recover_scheduled_tasks
@@ -11,9 +10,9 @@ def _create_tasks(db):
     db.commit()
     return task1, task2
 
+
 def test_recovery_works(monkeypatch, db):
-    now = datetime.now(timezone.utc)
-    _create_tasks(db, now)
+    _create_tasks(db)
     called = []
 
     def fake_schedule(task):
@@ -26,8 +25,7 @@ def test_recovery_works(monkeypatch, db):
 
 
 def test_scheduler_failure_does_not_crash(monkeypatch, db):
-    now = datetime.now(timezone.utc)
-    _create_tasks(db, now)
+    _create_tasks(db)
     called = []
 
     def fake_schedule(task):

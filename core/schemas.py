@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from croniter import CroniterBadCronError, croniter
 from pydantic import BaseModel, field_validator

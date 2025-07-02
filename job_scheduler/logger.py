@@ -1,7 +1,5 @@
 import logging
 
-from job_scheduler.config import settings
-
 # Create a custom logger
 logger = logging.getLogger("job_scheduler")
 logger.setLevel(logging.DEBUG)  # Change to INFO in prod

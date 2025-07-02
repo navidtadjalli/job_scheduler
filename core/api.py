@@ -1,13 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from core.models import ScheduledTask
 from core.schemas import PaginatedScheduledTasks, ScheduledTaskRead, TaskCreate
 from core.services import create_task, delete_task, list_tasks
-from core.tasks import remove_task
-from job_scheduler import exceptions
 from job_scheduler.dependencies import get_db
-from job_scheduler.logger import logger
 
 router = APIRouter()
 

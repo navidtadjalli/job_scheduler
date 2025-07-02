@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 
 from core.models import ScheduledTask
 from core.tasks import schedule_task
-from job_scheduler.config import PastTaskPolicy, settings
 from job_scheduler.database import SessionLocal
 from job_scheduler.logger import logger
 
@@ -13,7 +12,7 @@ def recover_scheduled_tasks():
 
     try:
         tasks = db.query(ScheduledTask).all()
-        
+
         for task in tasks:
             try:
                 schedule_task(task)

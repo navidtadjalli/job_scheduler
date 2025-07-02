@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-
 import pytest
 
 from core.schemas import TaskCreate

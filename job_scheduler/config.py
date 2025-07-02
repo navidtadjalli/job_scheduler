@@ -1,7 +1,7 @@
 from pydantic import Field, ValidationError
 from pydantic_settings import BaseSettings
 
-from job_scheduler.constants import PastTaskPolicy, Phase
+from job_scheduler.constants import Phase
 
 
 class Settings(BaseSettings):
