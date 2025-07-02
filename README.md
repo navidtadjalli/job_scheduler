@@ -275,58 +275,9 @@ job_scheduler/
 │
 ├── .env.sample                     # Sample env vars for local dev
 ├── .gitignore                      # Git exclusions (e.g., venv, pycache)
+├── Dockerfile                      # FastAPI app container build config  
+├── docker-compose.yml              # App + PostgreSQL + Redis orchestration
 ├── migrate.py                      # Schema initializer using SQLAlchemy
 ├── pyproject.toml                  # Project metadata + pytest plugins
 └── requirements.txt                # Python dependencies list
 ```
-
-
-
-
-You’re on the right track! But the README pagination section could be slightly more descriptive for clarity, correctness, and consistency with how developers expect API docs to look.
-
-Also, there’s a small typo:
-limit10 → should be limit=10
-
-⸻
-
-✅ Recommended README Section
-
-GET /tasks
-
-Returns a paginated list of scheduled tasks.
-
-🔍 Query Parameters:
-
-Parameter	Type	Default	Description
-offset	int	0	Number of records to skip
-limit	int	10	Max number of tasks to return (max: 100)
-
-✅ Example:
-
-GET /tasks?offset=0&limit=10
-
-
-⸻
-
-Optional: Mention Response Format
-
-If you’re using a PaginatedTasks schema:
-
-{
-  "count": 57,
-  "offset": 0,
-  "limit": 10,
-  "result": [
-    {
-      "task_id": "...",
-      "name": "...",
-      ...
-    }
-  ]
-}
-
-
-⸻
-
-Let me know if you’d like me to update the README chunk for you or integrate this directly into your project structure.
