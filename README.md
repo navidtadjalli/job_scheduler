@@ -264,12 +264,12 @@ This will output:
 Name                            Stmts   Miss  Cover   Missing
 -------------------------------------------------------------
 core/__init__.py                    0      0   100%
-core/api.py                        15      0   100%
+core/api.py                        18      0   100%
 core/models.py                     26      0   100%
 core/recovery.py                   17      0   100%
-core/schemas.py                    35      1    97%   16
-core/services.py                   42      0   100%
-core/tasks.py                      76      4    95%   51-52, 100-101
+core/schemas.py                    34      1    97%   16
+core/services.py                   50      0   100%
+core/tasks.py                      76      4    95%   76-77, 99-100
 job_scheduler/__init__.py           0      0   100%
 job_scheduler/config.py            16      0   100%
 job_scheduler/constants.py          7      0   100%
@@ -280,7 +280,7 @@ job_scheduler/logger.py             9      1    89%   17
 job_scheduler/main.py              19      4    79%   14-17
 job_scheduler/redis_client.py       3      0   100%
 -------------------------------------------------------------
-TOTAL                             304     14    95%
+TOTAL                             314     14    96%
 ```
 
 ---
