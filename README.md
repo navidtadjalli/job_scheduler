@@ -331,6 +331,16 @@ job_scheduler/
 
 ## 🔧 Possible Enhancements
 
-#### Update Task Endpoint:
-An endpoint like PUT /tasks/{slug} could be added to allow updating a task’s `name` or `cron_expression`.
+#### Update Task Endpoint
+An endpoint like `PUT /tasks/{slug}` could be added to allow updating a task’s `name` or `cron_expression`.
 For now, this feature is not implemented, as the core functionality (create, schedule, run, list, delete, recover) was prioritized for clarity and test coverage.
+
+---
+
+#### Database Migration Handling
+Currently, table creation is handled directly by SQLAlchemy. In a production setting, integrating a migration tool like Alembic would provide versioned schema management and allow safe changes over time (e.g., adding constraints or new fields).
+
+---
+
+#### Improved Health Check Endpoint
+The `/health` endpoint could be extended to actively check the PostgreSQL and Redis connection status. This would provide better observability in deployment environments and make it suitable for container orchestration readiness/liveness probes.
