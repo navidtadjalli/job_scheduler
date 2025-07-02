@@ -46,7 +46,7 @@ def test_run_task_success(db):
         previous_next_run_at = task.next_run_at
 
     with freeze_time("2025-05-03 12:14:01"):
-        run_task(task.scheduled_task_id)
+        run_task(task.slug)
         db.refresh(task)
         assert task.next_run_at == previous_next_run_at + timedelta(minutes=2)
 
@@ -75,7 +75,7 @@ def test_run_task_failure(db, monkeypatch):
 
     monkeypatch.setattr("core.tasks.get_result", broken_result)
 
-    run_task(task.scheduled_task_id)
+    run_task(task.slug)
 
     db.refresh(task)
 
