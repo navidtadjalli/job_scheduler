@@ -1,24 +1,24 @@
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 
-import pytest
 from apscheduler.triggers.cron import CronTrigger
-from apscheduler.triggers.date import DateTrigger
-from apscheduler.triggers.interval import IntervalTrigger
+from freezegun import freeze_time
 
-from job_scheduler.constants import TaskStatus
-from job_scheduler.core.models import ScheduledTask
-from job_scheduler.core.tasks import (
+from core.models import ExecutedTask, ScheduledTask
+from core.tasks import (
     get_result,
     get_result_for_error,
+    get_task_next_run_at,
     run_task,
     schedule_task,
     scheduler,
 )
+from job_scheduler.constants import ResultStatus
 from job_scheduler.redis_client import redis_client
 
 
-def create_task(db, name, run_at):
-    task = ScheduledTask(name=name, run_at=run_at)
+def create_task(db, name):
+    task = ScheduledTask(name=name, cron_expression="*/2 * * * *")
+    task.next_run_at = get_task_next_run_at(task)
     db.add(task)
     db.commit()
     return task
@@ -29,7 +29,7 @@ def test_run_task_nonexistent_id():
 
 
 def test_get_result():
-    task = ScheduledTask(task_id="get_result", name="get result")
+    task = ScheduledTask(scheduled_task_id="get_result", name="get result")
     result = get_result(task)
     assert f"Task '{task.name}' executed at " in result
 
@@ -41,49 +41,52 @@ def test_get_result_for_error():
 
 
 def test_run_task_success(db):
-    task = create_task(db, "successful_task", datetime.now(timezone.utc) + timedelta(seconds=5))
-    run_task(task.task_id)
-    db.refresh(task)
-    assert task.status == TaskStatus.Done.value
-    assert "executed at" in task.result
+    with freeze_time("2025-05-03 12:12:01"):
+        task = create_task(db, "successful_task")
+        previous_next_run_at = task.next_run_at
+
+    with freeze_time("2025-05-03 12:14:01"):
+        run_task(task.scheduled_task_id)
+        db.refresh(task)
+        assert task.next_run_at == previous_next_run_at + timedelta(minutes=2)
+
+    assert task.results.count() == 1
+    result: ExecutedTask = task.results[0]
+    assert result.status == ResultStatus.Done
+    assert " executed at " in result.result
 
 
 def test_run_task_double_execution_prevented(db):
-    task = create_task(db, "locked_task", datetime.now(timezone.utc) + timedelta(seconds=5))
-    lock = redis_client.lock(f"lock:task:{task.task_id}", timeout=60)
+    task = create_task(db, "locked_task")
+    lock = redis_client.lock(f"lock:task:{task.scheduled_task_id}", timeout=60)
     lock.acquire()
-    run_task(task.task_id)
+    assert task.results.count() == 0
+    run_task(task.scheduled_task_id)
     db.refresh(task)
-    assert task.status == TaskStatus.Scheduled.value
+    assert task.results.count() == 0
     lock.release()
 
 
 def test_run_task_failure(db, monkeypatch):
-    task = create_task(db, "failing_task", datetime.now(timezone.utc) + timedelta(seconds=5))
+    task = create_task(db, "failing_task")
 
     def broken_result(task):
         raise Exception("Simulated task execution failure")
 
-    monkeypatch.setattr("job_scheduler.core.tasks.get_result", broken_result)
+    monkeypatch.setattr("core.tasks.get_result", broken_result)
 
-    run_task(task.task_id)
+    run_task(task.scheduled_task_id)
 
     db.refresh(task)
-    assert task.status == TaskStatus.Failed.value
-    assert "Error:" in task.result
+
+    assert task.results.count() == 1
+    result: ExecutedTask = task.results[0]
+    assert result.status == ResultStatus.Failed
+    assert result.result == "Error: Simulated task execution failure"
 
 
-def test_run_task_already_done(db):
-    task = create_task(db, "completed_task", datetime.now(timezone.utc) + timedelta(seconds=5))
-    task.status = TaskStatus.Done.value
-    db.commit()
-    run_task(task.task_id)
-    db.refresh(task)
-    assert task.status == TaskStatus.Done.value
-
-
-def test_schedule_task_with_cron(monkeypatch):
-    task = ScheduledTask(task_id="test1", name="cron", cron="*/2 * * * *")
+def test_schedule_task_trigger_is_cron(db, monkeypatch):
+    task = create_task(db, "completed_task")
 
     def mock_add_job(func, trigger, **kwargs):
         assert isinstance(trigger, CronTrigger)
@@ -92,35 +95,3 @@ def test_schedule_task_with_cron(monkeypatch):
     monkeypatch.setattr(scheduler, "add_job", mock_add_job)
 
     schedule_task(task)
-
-
-def test_schedule_task_with_interval(monkeypatch):
-    task = ScheduledTask(task_id="test2", name="interval", interval_seconds=60)
-
-    def mock_add_job(func, trigger, **kwargs):
-        assert isinstance(trigger, IntervalTrigger)
-        assert trigger.interval.total_seconds() == 60
-
-    monkeypatch.setattr(scheduler, "add_job", mock_add_job)
-
-    schedule_task(task)
-
-
-def test_schedule_task_with_run_at(monkeypatch):
-    future = datetime.now(timezone.utc) + timedelta(seconds=30)
-    task = ScheduledTask(task_id="test3", name="run_at", run_at=future)
-
-    def mock_add_job(func, trigger, **kwargs):
-        assert isinstance(trigger, DateTrigger)
-        assert trigger.run_date == future
-
-    monkeypatch.setattr(scheduler, "add_job", mock_add_job)
-
-    schedule_task(task)
-
-
-def test_schedule_task_invalid():
-    task = ScheduledTask(task_id="bad", name="bad task")
-
-    with pytest.raises(ValueError, match="Invalid task: no timing provided"):
-        schedule_task(task)

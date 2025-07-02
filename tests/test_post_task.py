@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 from freezegun import freeze_time
+
 from job_scheduler.main import app
 
 client = TestClient(app)

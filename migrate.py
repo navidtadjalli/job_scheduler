@@ -1,4 +1,4 @@
-from job_scheduler.core.models import Base
+from core.models import Base
 from job_scheduler.database import engine
 
 print("📦 Creating PostgreSQL schema...")

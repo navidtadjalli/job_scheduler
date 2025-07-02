@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from core.models import ScheduledTask
-from core.schemas import PaginatedScheduledTasks, TaskCreate, ScheduledTaskRead
-from core.services import create_task, list_tasks, delete_task
+from core.schemas import PaginatedScheduledTasks, ScheduledTaskRead, TaskCreate
+from core.services import create_task, delete_task, list_tasks
 from core.tasks import remove_task
 from job_scheduler import exceptions
 from job_scheduler.dependencies import get_db
@@ -14,7 +14,10 @@ router = APIRouter()
 
 @router.post("/tasks", response_model=ScheduledTaskRead)
 def create_task_api(task_data: TaskCreate, db: Session = Depends(get_db)):
-    return create_task(db=db, task_data=task_data, )
+    return create_task(
+        db=db,
+        task_data=task_data,
+    )
 
 
 @router.get("/tasks", response_model=PaginatedScheduledTasks)

@@ -25,7 +25,7 @@ def test_get_tasks_pagination_works(db):
             json={"name": f"Visible Task {i}", "cron_expression": "*/5 * * * *"},
         )
         assert res.status_code == 200
-        
+
     response = client.get("/tasks?offset=5&limit=2")
     assert response.status_code == 200
     data = response.json()

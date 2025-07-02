@@ -1,6 +1,5 @@
 from fastapi.testclient import TestClient
 
-from core.models import ScheduledTask
 from job_scheduler.main import app
 
 client = TestClient(app)
@@ -13,9 +12,7 @@ def test_delete_nonexistent_task():
 
 
 def test_delete_task(monkeypatch):
-    res = client.post(
-        "/tasks", json={"name": "ToDelete", "cron_expression": "*/5 * * * *"}
-    )
+    res = client.post("/tasks", json={"name": "ToDelete", "cron_expression": "*/5 * * * *"})
     assert res.status_code == 200
     task_slug = res.json()["slug"]
 
@@ -53,6 +50,3 @@ def test_scheduler_removal_failure(monkeypatch, db):
     detail = response.json()["detail"]
     assert detail["error_code"] == "TASK_DELETE_500"
     assert "Failed to delete" in detail["detail"]
-
-    task = db.query(ScheduledTask).filter(ScheduledTask.slug==task_slug).first()
-    assert task.status == TaskStatus.Scheduled.value

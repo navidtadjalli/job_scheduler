@@ -23,7 +23,7 @@ class ScheduledTask(Base):
     cron_expression = Column(String, nullable=False)
     next_run_at = Column(DateTime, nullable=True)
 
-    results = relationship("ExecutedTask", back_populates="task")
+    results = relationship("ExecutedTask", back_populates="task", lazy="dynamic")
 
 
 class ExecutedTask(Base):

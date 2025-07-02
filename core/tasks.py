@@ -6,7 +6,8 @@ from apscheduler.triggers.cron import CronTrigger
 from redis.exceptions import LockError
 from sqlalchemy.orm import Session
 
-from core.models import ScheduledTask
+from core.models import ExecutedTask, ScheduledTask
+from job_scheduler.constants import ResultStatus
 from job_scheduler.database import SessionLocal
 from job_scheduler.logger import logger
 from job_scheduler.redis_client import redis_client
@@ -27,6 +28,21 @@ def get_result_for_error(exception_text: str) -> str:
     return f"Error: {exception_text}"
 
 
+def get_task_next_run_at(task: ScheduledTask) -> datetime:
+    trigger = CronTrigger.from_crontab(task.cron_expression)
+    now = datetime.now(timezone.utc)
+    return trigger.get_next_fire_time(None, now)
+
+
+def create_executed_task(task: ScheduledTask, status: ResultStatus, result: str):
+    db: Session = SessionLocal()
+    with db.begin():
+        executed_task = ExecutedTask(task_id=task.scheduled_task_id, status=status, result=result)
+
+        db.add(executed_task)
+        db.commit()
+
+
 def execute_task(db: Session, task_id: str):
     with db.begin():
         task = get_task_for_scheduler(db=db, task_id=task_id)
@@ -35,12 +51,16 @@ def execute_task(db: Session, task_id: str):
             logger.info(f"Task {task_id} not found or already processed.")
             return
 
-        logger.info(f"Executing task {task.task_id} - {task.name}")
+        logger.info(f"Executing task {task.scheduled_task_id} - {task.name}")
 
-        result = get_result(task=task)
-        task.status = TaskStatus.Done.value
-        task.result = result
-        logger.info(f"Task {task.task_id} completed successfully.")
+        task.next_run_at = get_task_next_run_at(task)
+        create_executed_task(
+            task=task,
+            status=ResultStatus.Done,
+            result=get_result(task),
+        )
+
+        logger.info(f"Task {task.scheduled_task_id} completed successfully.")
 
 
 def recover_task(db: Session, task_id: str, exception_text: str):
@@ -48,8 +68,12 @@ def recover_task(db: Session, task_id: str, exception_text: str):
         with db.begin():
             task = get_task_for_scheduler(db=db, task_id=task_id)
             if task:
-                task.status = TaskStatus.Failed.value
-                task.result = get_result_for_error(exception_text=exception_text)
+                task.next_run_at = get_task_next_run_at(task)
+                create_executed_task(
+                    task=task,
+                    status=ResultStatus.Failed,
+                    result=get_result_for_error(exception_text=exception_text),
+                )
     except Exception as rollback_err:
         logger.critical(f"Rollback failed: {rollback_err}")
 
@@ -89,9 +113,8 @@ def schedule_task(task: ScheduledTask):
             id=str(task.scheduled_task_id),
             replace_existing=True,
         )
-        
-        now = datetime.now(timezone.utc)
-        task.next_run_at = trigger.get_next_fire_time(None, now)
+
+        task.next_run_at = get_task_next_run_at(task=task)
 
         logger.info(f"Scheduled task {task.scheduled_task_id} ({task.name})")
 

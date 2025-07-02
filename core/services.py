@@ -1,9 +1,14 @@
-from sqlalchemy.orm import Session
 from fastapi import HTTPException
+from sqlalchemy.orm import Session
+
 from core.models import ScheduledTask
-from core.schemas import TaskCreate, PaginatedScheduledTasks
-from core.tasks import schedule_task, remove_task
-from job_scheduler.exceptions import TaskCreationFailed, TaskNotFound, TaskDeletionFailed
+from core.schemas import PaginatedScheduledTasks, TaskCreate
+from core.tasks import remove_task, schedule_task
+from job_scheduler.exceptions import (
+    TaskCreationFailed,
+    TaskDeletionFailed,
+    TaskNotFound,
+)
 from job_scheduler.logger import logger
 
 
@@ -30,17 +35,18 @@ def create_task(db: Session, task_data: TaskCreate):
         logger.error(f"Failed to create/schedule task: {e}")
         raise TaskCreationFailed()
 
+
 def list_tasks(db: Session, offset: int, limit: int):
     logger.info("Listing all tasks")
     tasks = db.query(ScheduledTask).order_by(ScheduledTask.created_at).offset(offset).limit(limit).all()
     count = db.query(ScheduledTask).count()
-    
+
     return PaginatedScheduledTasks(count=count, result=tasks)
 
 
 def delete_task(db: Session, task_slug: str):
     try:
-        task = db.query(ScheduledTask).filter(ScheduledTask.slug==task_slug).first()
+        task = db.query(ScheduledTask).filter(ScheduledTask.slug == task_slug).first()
         if not task:
             raise TaskNotFound()
 
