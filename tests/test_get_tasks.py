@@ -26,7 +26,7 @@ def test_get_tasks_pagination_works(db):
         )
         assert res.status_code == 200
 
-    response = client.get("/tasks?offset=5&limit=2")
+    response = client.get("/tasks?skip=5&limit=2")
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, dict)

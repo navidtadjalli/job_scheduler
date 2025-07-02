@@ -22,8 +22,8 @@ def create_task_api(task_data: TaskCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/tasks", response_model=PaginatedScheduledTasks)
-def list_tasks_api(db: Session = Depends(get_db), offset: int = Query(0, ge=0), limit: int = Query(10, le=100)):
-    return list_tasks(db=db, offset=offset, limit=limit)
+def list_tasks_api(db: Session = Depends(get_db), skip: int = Query(0, ge=0), limit: int = Query(10, le=100)):
+    return list_tasks(db=db, skip=skip, limit=limit)
 
 
 @router.delete("/tasks/{task_slug}")
@@ -33,6 +33,6 @@ def delete_task_api(task_slug: str, db: Session = Depends(get_db)):
 
 @router.get("/tasks/{task_slug}/results", response_model=PaginatedExecutedTasks)
 def list_task_results_api(
-    task_slug: str, db: Session = Depends(get_db), offset: int = Query(0, ge=0), limit: int = Query(10, le=100)
+    task_slug: str, db: Session = Depends(get_db), skip: int = Query(0, ge=0), limit: int = Query(10, le=100)
 ):
-    return list_task_results(db=db, task_slug=task_slug, offset=offset, limit=limit)
+    return list_task_results(db=db, task_slug=task_slug, skip=skip, limit=limit)

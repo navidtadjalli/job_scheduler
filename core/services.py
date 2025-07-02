@@ -36,9 +36,9 @@ def create_task(db: Session, task_data: TaskCreate):
         raise TaskCreationFailed()
 
 
-def list_tasks(db: Session, offset: int, limit: int):
+def list_tasks(db: Session, skip: int, limit: int):
     logger.info("Listing all tasks")
-    tasks = db.query(ScheduledTask).order_by(ScheduledTask.created_at).offset(offset).limit(limit).all()
+    tasks = db.query(ScheduledTask).order_by(ScheduledTask.created_at).offset(skip).limit(limit).all()
     count = db.query(ScheduledTask).count()
 
     return PaginatedScheduledTasks(count=count, result=tasks)
@@ -65,7 +65,7 @@ def delete_task(db: Session, task_slug: str):
         raise TaskDeletionFailed()
 
 
-def list_task_results(db: Session, task_slug: str, offset: int, limit: int):
+def list_task_results(db: Session, task_slug: str, skip: int, limit: int):
     task = db.query(ScheduledTask).filter(ScheduledTask.slug == task_slug).first()
     if not task:
         raise TaskNotFound()
@@ -76,7 +76,7 @@ def list_task_results(db: Session, task_slug: str, offset: int, limit: int):
         .join(ExecutedTask.task)
         .filter(ScheduledTask.slug == task_slug)
         .order_by(ExecutedTask.executed_at)
-        .offset(offset)
+        .offset(skip)
         .limit(limit)
         .all()
     )

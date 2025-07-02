@@ -102,12 +102,12 @@ Returns a paginated list of scheduled tasks.
 
 | Parameter | Type | Default | Description                              |
 |-----------|------|---------|------------------------------------------|
-| `offset`  | int  | 0       | Number of records to skip                |
+| `skip`    | int  | 0       | Number of records to skip                |
 | `limit`   | int  | 10      | Max number of tasks to return (max: 100) |
 
 Example:
 ```bash
-GET /tasks?offset=0&limit=10
+GET /tasks?skip=0&limit=10
 ```
 
 #### Response format:
@@ -151,12 +151,12 @@ task_slug	string
 
 | Parameter | Type | Default | Description                              |
 |-----------|------|---------|------------------------------------------|
-| `offset`  | int  | 0       | Number of records to skip                |
+| `skip`    | int  | 0       | Number of records to skip                |
 | `limit`   | int  | 10      | Max number of tasks to return (max: 100) |
 
 Example:
 ```bash
-GET /tasks/demo-slug/results?offset=0&limit=10
+GET /tasks/demo-slug/results?skip=0&limit=10
 ```
 
 #### Response format:
@@ -216,11 +216,11 @@ pytest
 - `test_get_task_results.py`: Task's results listing
   - Tests if the endpoint checks task's existence
   - Tests if the endpoint returns the list of all task's results in paginated format
-  - Tests if the endpoint pagination parameters (`offset`, `limit`) works and the result is sorted by `executed_at`
+  - Tests if the endpoint pagination parameters (`skip`, `limit`) works and the result is sorted by `executed_at`
 
 - `test_get_tasks.py`: Task listing
   - Tests if the endpoint returns the list of all tasks in paginated format
-  - Tests if the endpoint pagination parameters (`offset`, `limit`) works and the result is sorted by `created_at`
+  - Tests if the endpoint pagination parameters (`skip`, `limit`) works and the result is sorted by `created_at`
 
 - `test_health_check.py`: `/health` endpoint
   - Tests if the endpoint works correctly

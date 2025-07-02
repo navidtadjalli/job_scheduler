@@ -46,7 +46,7 @@ def task_with_results():
 
 def test_list_task_results_success(task_with_results):
     slug = task_with_results
-    response = client.get(f"/tasks/{slug}/results?offset=0&limit=10")
+    response = client.get(f"/tasks/{slug}/results?skip=0&limit=10")
 
     assert response.status_code == 200
     data = response.json()
@@ -65,7 +65,7 @@ def test_list_task_results_not_found():
 
 def test_get_tasks_pagination_works(task_with_results):
     slug = task_with_results
-    response = client.get(f"/tasks/{slug}/results?offset=5&limit=2")
+    response = client.get(f"/tasks/{slug}/results?skip=5&limit=2")
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, dict)
