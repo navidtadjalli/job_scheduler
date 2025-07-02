@@ -80,3 +80,4 @@ desktop.ini
 .pytest_cache
 dump.rdb
 test.db
+.ruff_cache
