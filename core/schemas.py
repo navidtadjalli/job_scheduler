@@ -37,7 +37,6 @@ class PaginatedScheduledTasks(BaseModel):
 
 
 class ExecutedTaskRead(BaseModel):
-    task_slug: str
     executed_at: datetime
     status: ResultStatus
     result: str

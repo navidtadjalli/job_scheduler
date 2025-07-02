@@ -133,6 +133,47 @@ GET /tasks?offset=0&limit=10
 Cancel a scheduled task (if not yet executed).
 
 ---
+### `GET /tasks/{slug}/results`
+
+Returns a paginated list of execution results for a specific scheduled task.
+
+#### Path Parameters:
+
+| Parameter   | Type    | Description                   |
+|-------------|---------|-------------------------------|
+| `task_slug` | string  | The slug identifier of a task |
+
+
+Parameter	Type	Description
+task_slug	string	
+
+#### Query Parameters:
+
+| Parameter | Type | Default | Description                              |
+|-----------|------|---------|------------------------------------------|
+| `offset`  | int  | 0       | Number of records to skip                |
+| `limit`   | int  | 10      | Max number of tasks to return (max: 100) |
+
+Example:
+```bash
+GET /tasks/demo-slug/results?offset=0&limit=10
+```
+
+#### Response format:
+
+```json
+{
+  "count": 1,
+  "result": [
+    {
+      "executed_at": "2025-07-02T03:38:45.210Z",
+      "status": "Done",
+      "result": "string"
+    }
+  ]
+}
+```
+---
 
 ## ⚙️ Configuration (`.env`)
 
@@ -171,6 +212,11 @@ pytest
   - Tests if the endpoint checks for task existence
   - Tests if the task is properly deleted from the database
   - Tests if the endpoint handles scheduler failures and rolls back database changes when necessary
+
+- `test_get_task_results.py`: Task's results listing
+  - Tests if the endpoint checks task's existence
+  - Tests if the endpoint returns the list of all task's results in paginated format
+  - Tests if the endpoint pagination parameters (`offset`, `limit`) works and the result is sorted by `executed_at`
 
 - `test_get_tasks.py`: Task listing
   - Tests if the endpoint returns the list of all tasks in paginated format
@@ -265,7 +311,8 @@ job_scheduler/
 │   ├── conftest.py                 # Shared fixtures (e.g., DB setup)
 │   ├── test_config.py              # Config
 │   ├── test_core_tasks.py          # run_task function logic
-│   ├── test_delete_task.py         # DELETE /tasks/{id}
+│   ├── test_delete_task.py         # DELETE /tasks/{slug}
+│   ├── test_get_task_results.py    # GET /tasks/{slug}/results
 │   ├── test_get_tasks.py           # GET /tasks
 │   ├── test_health_check.py        # GET /health
 │   ├── test_lifespan.py            # Lifespan startup behavior

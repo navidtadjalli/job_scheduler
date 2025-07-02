@@ -31,5 +31,6 @@ def test_get_tasks_pagination_works(db):
     data = response.json()
     assert isinstance(data, dict)
     assert data["count"] == 10
+    assert len(data["result"]) == 2
     assert data["result"][0]["name"] == "Visible Task 5"
     assert data["result"][1]["name"] == "Visible Task 6"

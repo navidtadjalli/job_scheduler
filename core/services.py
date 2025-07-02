@@ -2,8 +2,8 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from core.models import ScheduledTask
-from core.schemas import PaginatedScheduledTasks, TaskCreate
-from core.tasks import remove_task, schedule_task
+from core.schemas import PaginatedExecutedTasks, PaginatedScheduledTasks, TaskCreate
+from core.tasks import ExecutedTask, remove_task, schedule_task
 from job_scheduler.exceptions import (
     TaskCreationFailed,
     TaskDeletionFailed,
@@ -63,3 +63,23 @@ def delete_task(db: Session, task_slug: str):
         db.rollback()
         logger.error(f"Failed to delete task {task_slug}: {e}")
         raise TaskDeletionFailed()
+
+
+def list_task_results(db: Session, task_slug: str, offset: int, limit: int):
+    task = db.query(ScheduledTask).filter(ScheduledTask.slug == task_slug).first()
+    if not task:
+        raise TaskNotFound()
+
+    logger.info(f"Listing (Task {task_slug})'s results")
+    tasks = (
+        db.query(ExecutedTask)
+        .join(ExecutedTask.task)
+        .filter(ScheduledTask.slug == task_slug)
+        .order_by(ExecutedTask.executed_at)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    count = db.query(ExecutedTask).join(ExecutedTask.task).filter(ScheduledTask.slug == task_slug).count()
+
+    return PaginatedExecutedTasks(count=count, result=tasks)
